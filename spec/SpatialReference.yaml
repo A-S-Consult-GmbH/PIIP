@@ -1,0 +1,111 @@
+﻿- Ontology:
+    Name: SpatialReference
+    Doc: >-
+      Minimal spatial reference contract for linear infrastructure: shared
+      coordinate contexts (Raumbezug), horizontal and vertical CRS markers with
+      optional EPSG and/or WKT descriptors, and georeferencing attachment
+      of domain geometry. Does not model ellipsoid, datum, projection, or
+      transformation parameter sets; those belong to an optional extended
+      Geodesy ontology or to runtime implementations. Descriptor components
+      are optional (Open World). Systems may impose LOIN requiring EPSG
+      and/or WKT; fixed register identities for coordinate contexts may
+      omit both descriptors. Alignment and other domain ontologies must not
+      hard-link this ontology; georeferencing is attached by runtime
+      composition (GeoreferencedComponent on the domain entity).
+    Meta:
+        Uri: https://w3id.org/piip/SpatialReference/1
+        Organization: A+S Consult GmbH FuE
+        OrganizationUri: https://apluss.de/a+s_consult
+        Version: 1.0.0
+        Creators: [ Jens Bartnitzek ]
+    LinkedOntologies:
+        - Core:
+            Uri: https://w3id.org/piip/Core/1
+    BaseTypes:
+        - EpochValue:
+            Type: Real
+            Doc: "Coordinate epoch as decimal year (ISO 19111 coordinateEpoch). Used when coordinates of a dynamic datum shift over time."
+    Components:
+        - EpsgCodeComponent:
+            Doc: "EPSG registry entry identifying a CRS or other geodetic object. Optional descriptor on a CRS entity. See: https://epsg.org/, https://proj.org/"
+            Members:
+                - Integer code
+                - Optional<String> description
+                - Member:
+                    Type: Optional<Uri>
+                    Name: uri
+                    Doc: "External reference (e.g., http://www.opengis.net/def/crs/EPSG/0/25832)"
+        - WktComponent:
+            Doc: "Well-Known Text CRS definition (ISO 19162). Optional descriptor for CRS without EPSG entry (e.g., local projection systems) or parallel to EPSG."
+            Members:
+                - Member:
+                    Type: String
+                    Name: wkt
+                    Doc: "WKT or WKT2 string as accepted by the consuming runtime (e.g., PROJ)."
+                - Optional<String> description
+        - CrsComponent:
+            Doc: "Marker: Entity acts as a horizontal or 3D coordinate reference system under the minimal spatial reference contract. No geodetic decomposition in this ontology."
+        - VerticalCrsComponent:
+            Doc: "Marker: Entity acts as a vertical coordinate reference system (height). No vertical datum or geoid members at contract level."
+        - CoordinateContextComponent:
+            Doc: >-
+              Shared, versionable raumbezug bundle: horizontal CRS, optional
+              vertical CRS, optional epoch. Multiple georeferenced entities
+              reference the same context entity to avoid redundant specification
+              and to version the spatial reference independently of geometry.
+            Members:
+                - Member:
+                    Name: coordinateReferenceSystem
+                    Type: Link<CoordinateReferenceSystemArchetype>
+                    Doc: Horizontal or 3D CRS defining the primary spatial reference of coordinates.
+                - Member:
+                    Name: verticalReferenceSystem
+                    Type: Optional<Link<VerticalCoordinateReferenceSystemArchetype>>
+                    Doc: Vertical CRS when height is interpreted separately from the horizontal CRS.
+                - Member:
+                    Name: epoch
+                    Type: Optional<EpochValue>
+                    Doc: Reference epoch as decimal year (e.g., 2024.0) when required for dynamic datums.
+        - GeoreferencedComponent:
+            Doc: "Associates a domain entity with a coordinate context (Raumbezug) for spatial interpretation. Composition only: does not pull alignment or geodetic depth into the entity type."
+            Members:
+                - Member:
+                    Name: coordinateContext
+                    Type: Link<CoordinateContextArchetype>
+                    Doc: Shared raumbezug of this representation.
+    Archetypes:
+        - EpsgCodeArchetype:
+            Doc: Entity carrying an EPSG registry descriptor (may coincide with a CRS entity under OWA).
+            Includes: [ NamedArchetype ]
+            Components: [ EpsgCodeComponent ]
+        - WktArchetype:
+            Doc: Entity carrying a WKT CRS descriptor (may coincide with a CRS entity under OWA).
+            Includes: [ NamedArchetype ]
+            Components: [ WktComponent ]
+        - CoordinateReferenceSystemArchetype:
+            Doc: >-
+              Horizontal or 3D CRS as identity. Optionally compose EpsgCodeComponent
+              and/or WktComponent on the same entity. Extended Geodesy may add
+              datum/projection components without changing this marker contract.
+            Includes: [ LifecycleArchetype ]
+            Components: [ CrsComponent ]
+        - VerticalCoordinateReferenceSystemArchetype:
+            Doc: >-
+              Vertical CRS as identity (height reference). Optionally compose
+              EpsgCodeComponent and/or WktComponent. No datum link at contract level.
+            Includes: [ LifecycleArchetype ]
+            Components: [ VerticalCrsComponent ]
+        - CoordinateContextArchetype:
+            Doc: >-
+              Spatial reference: shared coordinate context combining horizontal CRS,
+              optional vertical CRS and optional epoch. Primary typed identity
+              for source/target of coordinate transformation systems.
+            Includes: [ LifecycleArchetype ]
+            Components: [ CoordinateContextComponent ]
+        - GeoreferencedArchetype:
+            Doc: >-
+              Domain entity georeferenced within a coordinate context
+              (attachment role). Typical composition: TrackAlignment components
+              plus GeoreferencedComponent (OWA). Not the spatial reference itself.
+            Includes: [ LifecycleArchetype ]
+            Components: [ GeoreferencedComponent ]

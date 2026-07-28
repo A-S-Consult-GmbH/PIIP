@@ -1,0 +1,60 @@
+﻿- Ontology:
+    Name: SpotPlacement
+    Doc: >-
+      Horizontal and vertical positioning strategies for spot-based positioning. Defines HOW a discrete position is derived relative to point providers (Positioning ontology) or along alignment providers (Positioning + Alignment ontologies). The Provider/Consumer binding pattern is defined in the Positioning ontology;
+      this ontology defines only the concrete strategies and the SpotPlacementComponent that combines them.
+      Named 'Spot' to distinguish parametric access from geometric result: Point describes the geometric primitive, Spot describes discrete evaluation at a single location.
+    Meta:
+        Uri: https://w3id.org/piip/SpotPlacement/1
+        Organization: A+S Consult GmbH FuE
+        OrganizationUri: https://apluss.de/a+s_consult
+        Version: 1.0.0
+        Creators: [ Jens Bartnitzek ]
+    LinkedOntologies:
+        - Core:
+            Uri: https://w3id.org/piip/Core/1
+        - Geometry:
+            Uri: https://w3id.org/piip/Geometry/1
+            Prefix: geo
+        - Positioning:
+            Uri: https://w3id.org/piip/Positioning/1
+            Prefix: pos
+        - Alignment:
+            Uri: https://w3id.org/piip/Alignment/1
+            Prefix: align
+        - CrossProfile:
+            Uri: https://w3id.org/piip/CrossProfile/1
+            Prefix: cp
+    Enums:
+        - VerticalAlignmentReference:
+            Doc: Selects the vertical reference height from an alignment provider. ReferenceAxis uses the height at the reference axis (e.g. top of rail without superelevation, reference edge for roads). Gradient uses the height from the vertical design stage (gradient height, typically at the centreline).
+            Values: [
+                ReferenceAxis,
+                Gradient ]
+        - ProjectionDirection:
+            Values: [
+                TopToBottom,
+                BottomToTop,
+            ]
+    ValueTypes:
+        - HorizontalPlacement:
+            Doc: additionalToX, additionalToY are applied after the main positioning
+            Members:
+                - Optional<LengthValue> additionalToX
+                - Optional<LengthValue> additionalToY
+        - VerticalPlacement:
+            Doc: additionalToHeight is applied after the main positioning
+            Members:
+                - Optional<LengthValue> additionalToHeight
+    Components:
+        - SpotPlacementComponent:
+            Doc: Positions an Entity at a discrete location by combining a horizontal and vertical placement strategy with an optional local transformation.
+            Members:
+                - HorizontalPlacement horizontal
+                - VerticalPlacement vertical
+                - Optional<geo:AffineTransformation3D> localAfterwards
+    Archetypes:
+        - SpotPlacedArchetype:
+            Doc: Any domain object that has been positioned at a discrete location via a spot placement strategy. Automatically provides a point position.
+            Includes: [ pos:PointProviderArchetype ]
+            Components: [ SpotPlacementComponent ]

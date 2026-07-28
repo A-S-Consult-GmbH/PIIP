@@ -1,0 +1,23 @@
+---
+# L1 — yamllint configuration for piip ontology YAML files.
+# Purpose: catch actual YAML syntax errors, not enforce cosmetic style.
+extends: default
+
+rules:
+  line-length:
+    max: 400
+  document-start: disable
+  comments-indentation: disable
+  # Project uses CRLF (dos) — enforce CRLF regardless of host OS
+  new-lines:
+    type: dos
+  new-line-at-end-of-file: disable
+  # Project uses 4-space indent; yamllint's strict mode clashes with
+  # the "- Ontology:" list-item pattern — disable cosmetic indent checks.
+  indentation: disable
+  # Project style:  [ value1, value2 ]  (spaces inside brackets)
+  brackets:
+    min-spaces-inside: 0
+    max-spaces-inside: -1
+  truthy:
+    check-keys: false

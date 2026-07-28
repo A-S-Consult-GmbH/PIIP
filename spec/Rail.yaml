@@ -1,0 +1,126 @@
+﻿- Ontology:
+    Name: Rail
+    Doc: >-
+      Railway domain objects: track alignment composition, route stationing,
+      speed profiles, operational switches. Links Core, Positioning, Alignment,
+      TrackAlignmentConnection.
+      TrackAlignmentConnection defines geometric line connections (alignment layer);
+      Rail adds physical and operational properties (rail profile, frog movability,
+      speed, network membership).
+      Naming convention:
+      TrackAlignment = spatial alignment composition (Frenet curve);
+      TrackSpeed = operational concern;
+      RailTrack / RailRoute / RailSwitch = comprehensive domain objects.
+      Architecture:
+      Each layer is a separate Entity with independent versioning.
+      AlignmentConsumerComponent (from Positioning) links domain objects to their alignment.
+      Additional representations (IST, survey) modelled as optional Components.
+    Meta:
+        Uri: https://w3id.org/piip/Rail/1
+        Organization: A+S Consult GmbH FuE
+        OrganizationUri: https://apluss.de/a+s_consult
+        Version: 1.0.0
+        Creators: [ Jens Bartnitzek ]
+    LinkedOntologies:
+        - Core:
+            Uri: https://w3id.org/piip/Core/1
+        - Positioning:
+            Uri: https://w3id.org/piip/Positioning/1
+            Prefix: pos
+        - Alignment:
+            Uri: https://w3id.org/piip/Alignment/1
+            Prefix: align
+        - TrackAlignmentConnection:
+            Uri: https://w3id.org/piip/TrackAlignmentConnection/1
+            Prefix: tc
+    Enums:
+        - FrogMovability:
+            Doc: Movability type of a frog (common crossing) in a railway switch.
+            Values: [
+                Fixed,        # unbewegliches Herzstück
+                SemiMovable,  # fest beweglich
+                Articulated   # vollständig gelenkig geführte Spitze
+            ]
+    ValueTypes:
+        # value types
+        - PermissibleSpeedSegment:
+            Members:
+                - align:StationValue startStation
+                - align:StationValue endStation
+                - SpeedValue maxSpeed
+                - String reason
+        - PermissibleSpeedRegister:
+            Members:
+                - Set<PermissibleSpeedSegment> segments
+                - Boolean direction
+                - SpeedValue maxSpeed
+                - Link<PermissibleSpeedSettingArchetype> setting
+    Components:
+        # --- track alignment composition ---
+        - TrackAlignmentComponent:
+            Doc: Aggregates horizontal, vertical and cant design stages into a complete spatial track alignment (Frenet curve). Optionally references a StationingAlignmentArchetype for kilometrage (Fremdstationierung).
+            Members:
+                - Link<align:HorizontalDesignStageArchetype> horizontal
+                - Optional<Link<align:VerticalDesignStageArchetype>> vertical
+                - Optional<Link<align:CantDesignStageArchetype>> cant
+                - Optional<Link<align:StationingAlignmentArchetype>> kilometrage
+        # --- speed profiles (operational concern) ---
+        - TrackSpeedComponent:
+            Doc: Permissible speed profiles for a railway track, per direction and train type.
+            Members:
+                - Set<PermissibleSpeedRegister> permissibleSpeeds
+        # --- route ---
+        - RailRouteComponent:
+            Doc: Associates a railway route with its tracks.
+            Members:
+                - Set<Link<RailTrackArchetype>> tracks
+        # --- switch (domain layer) ---
+        - RailSwitchComponent:
+            Doc: Operational railway switch or crossing (domain layer). References its geometric definition (alignment layer) via Link<T>. Physical properties (rail profile, frog movability) belong here, not on the geometric level. Serves as MacroNode carrier in meso-topology.
+            Members:
+                - Link<tc:TrackAlignmentConnectionArchetype> geometricDefinition
+                - Link<RailProfileArchetype> railProfile
+                - FrogMovability frogMovability
+        # --- network ---
+        - RailNetworkComponent:
+            Doc: Collection of railway tracks, routes and switches forming a network.
+            Members:
+                - Set<Link<RailTrackArchetype>> tracks
+                - Set<Link<RailRouteArchetype>> railRoutes
+                - Set<Link<RailSwitchArchetype>> switches
+        # --- settings / profiles ---
+        - PermissibleSpeedSettingComponent:
+            Doc: Configuration of a permissible speed setting.
+        - RailProfileComponent:
+            Doc: Rail profile type (e.g. "60", "49").
+    Archetypes:
+        # --- alignment based archetypes ---
+        - TrackAlignmentArchetype:
+            Doc: Complete spatial track alignment (Frenet curve) aggregating horizontal, vertical and cant stages, with optional kilometrage reference.
+            Includes: [ align:AlignmentArchetype ]
+            Components: [ TrackAlignmentComponent ]
+        # --- comprehensive domain objects ---
+        - RailTrackArchetype:
+            Doc: Physical railway track as a comprehensive domain object. References its design alignment via Link<T> (not Includes) to maintain independent versioning between alignment and domain object. Provides an alignment reference system for downstream objects (signals, platforms) via AlignmentProviderArchetype.
+            Includes: [ pos:AlignmentConsumerArchetype, pos:AlignmentProviderArchetype ]
+            Components: [ TrackSpeedComponent ]
+        - RailRouteArchetype:
+            Doc: Railway route as a comprehensive domain object. References its stationing alignment via Link<T> (not Includes) to maintain independent versioning between alignment and domain object. Associates its tracks via RailRouteComponent; per-track kilometrage is resolved via TrackAlignmentComponent.kilometrage. Provides an alignment reference system for route-level objects.
+            Includes: [ pos:AlignmentConsumerArchetype, pos:AlignmentProviderArchetype ]
+            Components: [ RailRouteComponent ]
+        - RailNetworkArchetype:
+            Doc: Domain object representing a collection of railway tracks, routes and switches.
+            Includes: [ LifecycleArchetype ]
+            Components: [ RailNetworkComponent ]
+        - RailSwitchArchetype:
+            Doc: Operational railway switch or crossing (domain layer). References its geometric definition via Link<T>. Carries physical properties (rail profile, frog movability). Serves as MacroNode carrier in meso-topology. Covers all connection types.
+            Includes: [ LifecycleArchetype ]
+            Components: [ RailSwitchComponent ]
+        - PermissibleSpeedSettingArchetype:
+            Doc: Speed setting configuration.
+            Includes: [ LifecycleArchetype ]
+            Components: [ PermissibleSpeedSettingComponent ]
+        - RailProfileArchetype:
+            Doc: Rail profile type for switch and track specification.
+            Includes: [ LifecycleArchetype ]
+            Components: [ RailProfileComponent ]

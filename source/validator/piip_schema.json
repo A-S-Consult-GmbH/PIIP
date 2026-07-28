@@ -1,0 +1,316 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://w3id.org/piip/schema/ontology/1",
+  "title": "PIIP Ontology Schema",
+  "description": "Validates the structural grammar of PIIP ECS ontology YAML files.",
+
+  "type": "array",
+  "minItems": 1,
+  "maxItems": 1,
+  "items": {
+    "type": "object",
+    "required": ["Ontology"],
+    "additionalProperties": false,
+    "properties": {
+      "Ontology": { "$ref": "#/$defs/Ontology" }
+    }
+  },
+
+  "$defs": {
+
+    "Ontology": {
+      "type": "object",
+      "required": ["Name", "Meta"],
+      "additionalProperties": false,
+      "properties": {
+        "Name":              { "type": "string", "minLength": 1 },
+        "Doc":               { "type": "string" },
+        "Meta":              { "$ref": "#/$defs/Meta" },
+        "LinkedOntologies":  { "$ref": "#/$defs/LinkedOntologies" },
+        "BaseTypes":         { "$ref": "#/$defs/BaseTypes" },
+        "Enums":             { "$ref": "#/$defs/Enums" },
+        "ValueTypes":        { "$ref": "#/$defs/ValueTypes" },
+        "Components":        { "$ref": "#/$defs/Components" },
+        "Archetypes":        { "$ref": "#/$defs/Archetypes" },
+        "InformationNeed":   { "$ref": "#/$defs/InformationNeed" },
+        "Systems":           { "$ref": "#/$defs/Systems" }
+      }
+    },
+
+    "Meta": {
+      "type": "object",
+      "required": ["Uri", "Organization", "OrganizationUri", "Version"],
+      "additionalProperties": false,
+      "properties": {
+        "Uri":              { "type": "string", "format": "uri", "pattern": "^https://w3id\\.org/piip/" },
+        "Organization":     { "type": "string", "minLength": 1 },
+        "OrganizationUri":  { "type": "string", "format": "uri" },
+        "Version":          { "type": "string", "pattern": "^[0-9]+\\.[0-9]+\\.[0-9]+$" },
+        "Creators":         { "type": "array", "items": { "type": "string" } }
+      }
+    },
+
+    "LinkedOntologies": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "minProperties": 1,
+        "maxProperties": 1,
+        "additionalProperties": {
+          "type": "object",
+          "required": ["Uri"],
+          "additionalProperties": false,
+          "properties": {
+            "Uri":    { "type": "string", "format": "uri" },
+            "Prefix": { "type": "string", "pattern": "^[a-z][a-zA-Z0-9]*$" }
+          }
+        }
+      }
+    },
+
+    "BaseTypes": {
+      "type": "array",
+      "items": {
+        "oneOf": [
+          { "type": "string" },
+          {
+            "type": "object",
+            "minProperties": 1,
+            "maxProperties": 1,
+            "additionalProperties": {
+              "oneOf": [
+                { "type": "null" },
+                {
+                  "type": "object",
+                  "properties": {
+                    "Type": { "type": "string" },
+                    "Unit": { "type": "string" },
+                    "Doc":  { "type": "string" }
+                  },
+                  "additionalProperties": false
+                }
+              ]
+            }
+          }
+        ]
+      }
+    },
+
+    "Enums": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "minProperties": 1,
+        "maxProperties": 1,
+        "additionalProperties": {
+          "type": "object",
+          "required": ["Values"],
+          "additionalProperties": false,
+          "properties": {
+            "Doc":    { "type": "string" },
+            "Values": {
+              "type": "array",
+              "items": { "type": "string" },
+              "minItems": 1,
+              "uniqueItems": true
+            }
+          }
+        }
+      }
+    },
+
+    "ValueTypes": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "minProperties": 1,
+        "maxProperties": 1,
+        "additionalProperties": {
+          "oneOf": [
+            { "type": "null" },
+            {
+              "type": "object",
+              "additionalProperties": false,
+              "properties": {
+                "Doc":     { "type": "string" },
+                "Extends": { "type": "string" },
+                "Members": { "$ref": "#/$defs/Members" }
+              }
+            }
+          ]
+        }
+      }
+    },
+
+    "Components": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "minProperties": 1,
+        "maxProperties": 1,
+        "additionalProperties": {
+          "$ref": "#/$defs/ComponentBody"
+        }
+      }
+    },
+
+    "ComponentBody": {
+      "oneOf": [
+        { "type": "null" },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "not": {
+            "anyOf": [
+              { "required": ["Extends"] },
+              { "required": ["Includes"] }
+            ]
+          },
+          "properties": {
+            "Doc":     { "type": "string" },
+            "Members": { "$ref": "#/$defs/Members" }
+          }
+        }
+      ]
+    },
+
+    "Archetypes": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "minProperties": 1,
+        "maxProperties": 1,
+        "additionalProperties": {
+          "$ref": "#/$defs/ArchetypeBody"
+        }
+      }
+    },
+
+    "ArchetypeBody": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "Doc":        { "type": "string" },
+        "Includes":   {
+          "type": "array",
+          "items": { "type": "string" }
+        },
+        "Components": {
+          "type": "array",
+          "items": { "type": "string" }
+        }
+      }
+    },
+
+    "InformationNeed": {
+      "type": "object",
+      "additionalProperties": {
+        "$ref": "#/$defs/InformationNeedEntry"
+      }
+    },
+
+    "InformationNeedEntry": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "Doc":      { "type": "string" },
+        "OneOf":    { "type": "array", "items": { "type": "string" }, "minItems": 1 },
+        "AnyOf":    { "type": "array", "items": { "type": "string" }, "minItems": 1 },
+        "MustHave": { "type": "array", "items": { "type": "string" }, "minItems": 1 }
+      }
+    },
+
+    "Systems": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "minProperties": 1,
+        "maxProperties": 1,
+        "additionalProperties": {
+          "$ref": "#/$defs/SystemBody"
+        }
+      }
+    },
+
+    "SystemBody": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["Doc", "Operations"],
+      "properties": {
+        "Doc":        { "type": "string" },
+        "Operations": { "$ref": "#/$defs/Operations" }
+      }
+    },
+
+    "Operations": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "minProperties": 1,
+        "maxProperties": 1,
+        "additionalProperties": {
+          "$ref": "#/$defs/OperationBody"
+        }
+      }
+    },
+
+    "OperationBody": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["Doc", "Input", "Output"],
+      "properties": {
+        "Doc":    { "type": "string" },
+        "Input":  {
+          "oneOf": [
+            { "type": "array", "maxItems": 0 },
+            { "$ref": "#/$defs/Members", "minItems": 1 }
+          ]
+        },
+        "Output": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "pattern": "^\\S+\\s+\\S+$"
+          },
+          "minItems": 1
+        }
+      }
+    },
+
+    "Members": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/MemberItem"
+      }
+    },
+
+    "MemberItem": {
+      "oneOf": [
+        {
+          "type": "string",
+          "description": "Short form: 'Type name' or 'Optional<Type> name'",
+          "pattern": "^\\S+\\s+\\S+$"
+        },
+        {
+          "type": "object",
+          "required": ["Member"],
+          "additionalProperties": false,
+          "properties": {
+            "Member": { "$ref": "#/$defs/MemberExplicit" }
+          }
+        }
+      ]
+    },
+
+    "MemberExplicit": {
+      "type": "object",
+      "required": ["Name", "Type"],
+      "additionalProperties": false,
+      "properties": {
+        "Name": { "type": "string", "minLength": 1 },
+        "Type": { "type": "string", "minLength": 1 },
+        "Doc":  { "type": "string" }
+      }
+    }
+  }
+}

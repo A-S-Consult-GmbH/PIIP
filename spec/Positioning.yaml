@@ -1,0 +1,63 @@
+﻿- Ontology:
+    Name: Positioning
+    Doc: >-
+      Abstract Provider/Consumer pattern for geometric reference systems.
+      Defines markers and references for entities that provide or consume
+      geometric reference systems of three dimensions: point-based (0D),
+      alignment-based (1D with stationing), and surface-based (2D).
+      Positioning strategies
+      that describe HOW a consumer derives its position from a provider
+      are defined in separate ontologies (SpotPlacement for dP=0,
+      future LinearPlacement for dP=1). LinearPlacement builds on
+      SpotPlacement: bounding points of a station range are themselves
+      SpotPlacements. The separation of Provider/Consumer binding from
+      positioning strategy enables independent evolution: new strategies
+      can be added without modifying the structural binding pattern.
+    Meta:
+        Uri: https://w3id.org/piip/Positioning/1
+        Organization: A+S Consult GmbH FuE
+        OrganizationUri: https://apluss.de/a+s_consult
+        Version: 1.0.0
+        Creators: [ Jens Bartnitzek ]
+    LinkedOntologies:
+        - Core:
+            Uri: https://w3id.org/piip/Core/1
+    Components:
+        # --- point-based provider/consumer ---
+        - PointProviderComponent:
+            Doc: Marks an Entity as providing a point-shaped reference frame (position and orientation) that other entities can reference for positioning.
+        - PointConsumerComponent:
+            Doc: Binds an Entity to a point provider as positional anchor for point-based positioning. The referenced provider supplies a position and an orientation frame.
+            Members:
+                - Link<PointProviderArchetype> referencePoint
+        # --- alignment-based provider/consumer ---
+        - AlignmentProviderComponent:
+            Doc: Marks an Entity as providing a parametric curve with stationing system (alignment) that other entities can reference for positioning. The concrete geometric definition (segments, design stages) is provided by Components in the Alignment ontology.
+        - AlignmentConsumerComponent:
+            Doc: Binds an Entity to an alignment provider. The referenced provider supplies a parametric curve evaluable along a stationing axis. Domain-agnostic — used by Rail, Road and future domains.
+            Members:
+                - Link<AlignmentProviderArchetype> alignment
+        # --- surface-based provider ---
+        - SurfaceProviderComponent:
+            Doc: Marks an Entity as providing a queryable surface for height evaluation at arbitrary horizontal positions. Used for terrain models (DGM), platform surfaces, and similar 2D reference geometries.
+    Archetypes:
+        - PointProviderArchetype:
+            Doc: Entity providing a point-shaped reference frame (position and orientation) as geometric reference system for other entities.
+            Includes: [ LifecycleArchetype ]
+            Components: [ PointProviderComponent ]
+        - PointConsumerArchetype:
+            Doc: Entity consuming a point reference system from another entity.
+            Includes: [ LifecycleArchetype ]
+            Components: [ PointConsumerComponent ]
+        - AlignmentProviderArchetype:
+            Doc: Entity providing a parametric curve with stationing as geometric reference system. Concrete alignment geometry is defined by Components in the Alignment ontology.
+            Includes: [ LifecycleArchetype ]
+            Components: [ AlignmentProviderComponent ]
+        - AlignmentConsumerArchetype:
+            Doc: Entity consuming an alignment reference system. Domain objects (tracks, routes) include this Archetype to declare alignment-based positioning capability.
+            Includes: [ LifecycleArchetype ]
+            Components: [ AlignmentConsumerComponent ]
+        - SurfaceProviderArchetype:
+            Doc: Entity providing a queryable surface as geometric reference system for height queries at arbitrary horizontal positions.
+            Includes: [ LifecycleArchetype ]
+            Components: [ SurfaceProviderComponent ]

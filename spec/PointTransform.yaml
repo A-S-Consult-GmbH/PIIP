@@ -1,0 +1,128 @@
+﻿- Ontology:
+    Name: PointTransform
+    Doc: >-
+      System contract for transforming a single point between two coordinate
+      contexts (Raumbezug). Concrete geodetic algorithmics (PROJ, commercial engines,
+      optional private Geodesy) are runtime detail behind the contract.
+      Whether EPSG/WKT descriptors are required on CRS entities in Data payloads
+      is an InformationNeed concern. Every operation on a started instance
+      addresses that instance via PointTransformSystemHandle. Domain payloads
+      on the wire use Data<Archetype> (full JSON structure), not Link (GUID-only).
+    Meta:
+        Uri: https://w3id.org/piip/PointTransform/1
+        Organization: A+S Consult GmbH FuE
+        OrganizationUri: https://apluss.de/a+s_consult
+        Version: 1.0.0
+        Creators: [ Jens Bartnitzek ]
+    LinkedOntologies:
+        - Core:
+            Uri: https://w3id.org/piip/Core/1
+        - Geometry:
+            Uri: https://w3id.org/piip/Geometry/1
+            Prefix: geo
+        - SpatialReference:
+            Uri: https://w3id.org/piip/SpatialReference/1
+            Prefix: sref
+    ValueTypes:
+        - PointTransformSystemHandle:
+            Doc: >-
+              Typed handle of a started PointTransformSystem runtime instance.
+              Part of the public contract: callers of TransformPoint and
+              Shutdown must supply this handle; Start returns it. Addressing
+              and contract identity are separate concerns (endpoint vs.
+              contractUri). No authentication fields in the local scenario.
+            Members:
+                - Member:
+                    Type: Uri
+                    Name: endpoint
+                    Doc: >-
+                      Network or process endpoint of this runtime instance
+                      (e.g. http://127.0.0.1:8101). Typed as Core Uri, not a
+                      free-form string.
+                - Member:
+                    Type: UUID
+                    Name: systemId
+                    Doc: >-
+                      Stable identity of this started runtime instance (GUID).
+                      Distinguishes concurrent instances of the same product.
+                - Member:
+                    Type: Uri
+                    Name: contractUri
+                    Doc: >-
+                      URI of the system ontology (contract) this instance
+                      claims to fulfill, including major version path
+                      (e.g. https://w3id.org/piip/PointTransform/1).
+                      Enables the caller to verify contract compatibility
+                      independently of endpoint and instance identity.
+                      Not a substitute for systemId.
+        - PointTransformResult:
+            Doc: >-
+              Result of TransformPoint: on success point is set and errorMessage is absent; on
+              failure errorMessage is set and point is absent. No redundant
+              success flag. Heavy provenance is not required for single points.
+            Members:
+                - Member:
+                    Type: Optional<geo:Point3D>
+                    Name: point
+                    Doc: "Transformed point in the target coordinate context when the operation succeeded."
+                - Member:
+                    Type: Optional<Real>
+                    Name: achievedAccuracy
+                    Doc: "Achieved accuracy estimate if the runtime provides one (only with point)."
+                - Member:
+                    Type: Optional<String>
+                    Name: errorMessage
+                    Doc: "Failure reason when the operation did not produce a point."
+    Systems:
+        - PointTransformSystem:
+            Doc: >-
+              Atomic geodetic point operation between two CoordinateContext
+              values. Lifecycle Start/Shutdown supports local orchestration;
+              TransformPoint is the domain-facing operation. Instance
+              identity is carried by PointTransformSystemHandle on every
+              post-Start operation.
+            Operations:
+                - Start:
+                    Doc: >-
+                      Start the runtime process and return a
+                      PointTransformSystemHandle for subsequent TransformPoint
+                      and Shutdown calls.
+                    Input: []
+                    Output:
+                        - PointTransformSystemHandle handle
+                - TransformPoint:
+                    Doc: >-
+                      Transform one point from source to target coordinate
+                      context on the runtime instance identified by handle.
+                      Contexts are passed as Data (by-value JSON), not as
+                      Link (GUID-only). May fail if the point is outside the
+                      validity domain or descriptors cannot be resolved.
+                    Input:
+                        - Member:
+                            Type: PointTransformSystemHandle
+                            Name: handle
+                            Doc: "Started PointTransformSystem instance to invoke."
+                        - Member:
+                            Type: Data<sref:CoordinateContextArchetype>
+                            Name: sourceContext
+                            Doc: "Full coordinate-context structure (and nested CRS descriptors as needed)."
+                        - Member:
+                            Type: Data<sref:CoordinateContextArchetype>
+                            Name: targetContext
+                        - Member:
+                            Type: geo:Point3D
+                            Name: point
+                        - Member:
+                            Type: Optional<Real>
+                            Name: requestedTolerance
+                            Doc: "Optional tolerance request; interpretation is runtime-specific."
+                    Output:
+                        - PointTransformResult result
+                - Shutdown:
+                    Doc: Stop the runtime instance identified by the handle.
+                    Input:
+                        - Member:
+                            Type: PointTransformSystemHandle
+                            Name: handle
+                    Output:
+                        - Boolean success

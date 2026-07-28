@@ -1,0 +1,275 @@
+﻿- Ontology:
+    Name: Alignment
+    Doc: >-
+      Geometric alignment: horizontal, vertical, cant, cross slope, stationing, discretisation.
+      Domain-agnostic — concrete alignment compositions (TrackAlignmentComponent, RoadAlignmentComponent) are defined in their respective domain ontologies (Rail, Road).
+      Design stages (layer 1) are individual coordinate functions (horizontal, vertical, cant);
+      an alignment (layer 2) is the composed Frenet curve evaluable in 3D along a stationing axis.
+      Links Core for base types and Geometry for Point2D.
+    Meta:
+        Uri: https://w3id.org/piip/Alignment/1
+        Organization: A+S Consult GmbH FuE
+        OrganizationUri: https://apluss.de/a+s_consult
+        Version: 1.0.0
+        Creators: [ Jens Bartnitzek ]
+    LinkedOntologies:
+        - Core:
+            Uri: https://w3id.org/piip/Core/1
+        - Positioning:
+            Uri: https://w3id.org/piip/Positioning/1
+            Prefix: pos
+        - Geometry:
+            Uri: https://w3id.org/piip/Geometry/1
+            Prefix: geo
+    Enums:
+        - HorizontalTransitionType:
+            Values: [
+                Clothoid,
+                HelmertCurve,
+                HelmertHalfCurve,
+                BlossCurve,
+                BlossHalfCurve,
+                SineCurve,
+                CosineCurve ]
+        - CantType:
+            Values: [
+                Linear,
+                HelmertCurve,
+                HelmertHalfCurve,
+                BlossCurve,
+                BlossHalfCurve,
+                SineCurve,
+                CosineCurve,
+                VienneseBend ]
+        - DesignStage:
+            Doc: Defines the specific design layer of the alignment, such as horizontal alignment, vertical alignment, spatial layout, or cant.
+            Values: [
+                Horizontal,
+                Vertical,
+                Spatial,
+                Cant ]
+        - SlopeSegmentType:
+            Values: [
+                Linear,
+                Parabolic ]
+        - StationReference:
+            Doc: Classifies the parametrisation of a station value. InternalStation is the arc length along the referenced alignment; ExternalStation is the reparametrised kilometrage station including jumps and scaling. Foreign stationing (Fremdstationierung) is expressed structurally by referencing a different alignment in the StationComponent, not by an enum value.
+            Values: [
+                InternalStation,
+                ExternalStation ]
+    ValueTypes:
+        # value types (no Entity semantics, embedded in Components)
+        # --- horizontal segments ---
+        - HorizontalSegment:
+        - HorizontalLine:
+            Extends: HorizontalSegment
+            Members:
+                - geo:Point2D startPoint
+                - AngleValue startAngle
+                - LengthValue length
+        - HorizontalCircularArc:
+            Extends: HorizontalSegment
+            Members:
+                - geo:Point2D startPoint
+                - AngleValue startAngle
+                - LengthValue length
+                - LengthValue radius
+        - HorizontalTransition:
+            Extends: HorizontalSegment
+            Members:
+                - geo:Point2D startPoint
+                - AngleValue startAngle
+                - LengthValue length
+                - CurvatureValue startCurvature
+                - CurvatureValue endCurvature
+                - HorizontalTransitionType transitionType
+        - HorizontalTransitionVienneseBend:
+            Extends: HorizontalSegment
+            Members:
+                - geo:Point2D startPoint
+                - AngleValue startAngle
+                - LengthValue length
+                - CurvatureValue startCurvature
+                - CurvatureValue endCurvature
+                - LengthValue centroidalHeight
+                - AngleValue deltaPsi
+        # --- vertical segments ---
+        - VerticalSegment:
+        - VerticalLine:
+            Extends: VerticalSegment
+            Members:
+                - LengthValue startHeight
+                - LengthValue endHeight
+                - LengthValue length
+        - VerticalParabolicArc:
+            Extends: VerticalSegment
+            Members:
+                - LengthValue startHeight
+                - LengthValue endHeight
+                - LengthValue length
+                - LengthValue radius
+        - VerticalCircularArc:
+            Extends: VerticalSegment
+            Members:
+                - LengthValue startHeight
+                - LengthValue endHeight
+                - LengthValue length
+                - LengthValue radius
+        # --- cant segments ---
+        - CantSegment:
+            Members:
+                - LengthValue length
+                - LengthValue cantStartLeft
+                - LengthValue cantStartRight
+                - LengthValue cantEndLeft
+                - LengthValue cantEndRight
+                - CantType cantType
+        # --- cross slope segments ---
+        - CrossSlopeSegment:
+            Members:
+                - LengthValue length
+                - SlopeValue slopeStart
+                - SlopeValue slopeEnd
+                - SlopeSegmentType slopeType
+        # --- stationing ---
+        - StationingTriple:
+            Members:
+                - LengthValue internalStation
+                - LengthValue incomingStation
+                - LengthValue outgoingStation
+        - StationValue:
+            Doc: Primitive station coordinate without identity. Used as lightweight value in lists and positioning parameters.
+            Members:
+                - LengthValue value
+                - StationReference reference
+        - Nurb2DControlPoint:
+            Members:
+                - geo:Point2D position
+                - Real weight
+        # --- discretization ---
+        - DiscretizationRequirement:
+            Doc: Tolerance specification for a particular design stage during discretization. Identity-less value embedded in DiscretizationComponent.
+            Members:
+                - DesignStage stage
+                - LengthValue tolerance
+    Components:
+        # --- alignment marker ---
+        - AlignmentComponent:
+            Doc: Marker identifying an Entity as a geometric alignment evaluable along a stationing axis. Carries no data; Systems derive evaluable design stages from the concrete Components present.
+        # --- stationing ---
+        - StationingComponent:
+            Doc: Enriches a horizontal design stage with an external stationing system for real-world kilometrage, allowing station jumps, overlaps, or gaps.
+            Members:
+                - Link<HorizontalDesignStageArchetype> alignment
+                - Optional<Link<VerticalDesignStageArchetype>> vertical
+                - List<StationingTriple> stationingEntries
+        # --- design stages ---
+        - SegmentedHorizontalDesignStageComponent:
+            Doc: Horizontal design stage as ordered sequence of geometric segments.
+            Members:
+                - LengthValue internalStartStation
+                - List<HorizontalSegment> segments
+        - Nurb2DHorizontalDesignStageComponent:
+            Doc: Horizontal design stage as a NURBS curve in 2D.
+            Members:
+                - Integer degree
+                - List<Real> knots
+                - List<Nurb2DControlPoint> points
+        - SegmentedVerticalDesignStageComponent:
+            Doc: Vertical profile as ordered sequence of vertical segments.
+            Members:
+                - LengthValue internalStartStation
+                - List<VerticalSegment> segments
+        - SegmentedCantDesignStageComponent:
+            Doc: Cant profile as ordered sequence of cant segments.
+            Members:
+                - LengthValue internalStartStation
+                - List<CantSegment> segments
+        - CrossSlopeDesignStageComponent:
+            Doc: Cross slope profile as ordered sequence of slope segments.
+            Members:
+                - LengthValue internalStartStation
+                - List<CrossSlopeSegment> segments
+        # --- design stage markers ---
+        - HorizontalDesignStageComponent:
+            Doc: Marker identifying an Entity as a horizontal design stage. Carries no data; the concrete representation is defined by SegmentedHorizontalDesignStageComponent or Nurb2DHorizontalDesignStageComponent.
+        - VerticalDesignStageComponent:
+            Doc: Marker identifying an Entity as a vertical design stage.
+        - CantDesignStageComponent:
+            Doc: Marker identifying an Entity as a cant (superelevation) design stage.
+        # --- sections and discretization ---
+        - AlignmentSectionComponent:
+            Doc: Defines a section from start to end on an alignment provider. The provider can be a pure alignment (layer 2) or a domain object such as a track or route (layer 3) that fulfils AlignmentProviderArchetype.
+            Members:
+                - Link<pos:AlignmentProviderArchetype> provider
+                - Link<StationArchetype> start
+                - Link<StationArchetype> end
+        - DiscretizationComponent:
+            Doc: Parameters and results of discretizing an alignment into a qualified polyline.
+            Members:
+                - Link<AlignmentArchetype> alignment
+                - Optional<StationValue> startStation
+                - Optional<StationValue> endStation
+                - LengthValue minimalStepSize
+                - Set<DiscretizationRequirement> designRequirements
+                - Member:
+                    Type: List<StationValue>
+                    Name: stations
+                    Doc: Generated sequence of stations resulting from discretization.
+        # --- stationing ---
+        - StationComponent:
+            Doc: Wraps a StationValue with alignment reference for entities that need identity and referenceability. Foreign stationing is expressed by referencing an alignment different from the entity's own.
+            Members:
+                - StationValue station
+                - Link<AlignmentArchetype> alignment
+        - DiscontinuityStationComponent:
+            Doc: Additional information for stations at discontinuities (geometry transitions, slope breaks, superelevation shifts).
+            Members:
+                - Member:
+                    Type: DesignStage
+                    Name: stage
+                    Doc: Design stage in which the discontinuity occurs.
+    Archetypes:
+        # --- full alignments ---
+        - AlignmentArchetype:
+            Doc: Any versioned Entity representing a geometric alignment evaluable along a stationing axis. Provides an alignment reference system via pos:AlignmentProviderArchetype.
+            Includes: [ pos:AlignmentProviderArchetype ]
+            Components: [ AlignmentComponent ]
+        - StationingAlignmentArchetype:
+            Doc: Alignment enriched with external stationing system for kilometrage management.
+            Includes: [ AlignmentArchetype ]
+            Components: [ StationingComponent ]
+        # --- design stages ---
+        - HorizontalDesignStageArchetype:
+            Doc: Horizontal (planar) layout of a design stage, independent of elevation or cant.
+            Includes: [ LifecycleArchetype ]
+            Components: [ HorizontalDesignStageComponent ]
+        - VerticalDesignStageArchetype:
+            Doc: Vertical profile (elevation changes) along a horizontal design stage.
+            Includes: [ LifecycleArchetype ]
+            Components: [ VerticalDesignStageComponent ]
+        - CantDesignStageArchetype:
+            Doc: Cant (superelevation) profile along a horizontal design stage.
+            Includes: [ LifecycleArchetype ]
+            Components: [ CantDesignStageComponent ]
+        - CrossSlopeDesignStageArchetype:
+            Doc: Cross slope profile for road design stage.
+            Includes: [ LifecycleArchetype ]
+            Components: [ CrossSlopeDesignStageComponent ]
+        # --- sections, stations, discretization ---
+        - AlignmentSectionArchetype:
+            Doc: Section from start to end on an alignment provider (alignment or domain object).
+            Includes: [ NamedArchetype ]
+            Components: [ AlignmentSectionComponent ]
+        - StationArchetype:
+            Doc: Location reference along an alignment.
+            Includes: [ NamedArchetype ]
+            Components: [ StationComponent ]
+        - DiscontinuityStationArchetype:
+            Doc: Station at a geometry transition or design discontinuity.
+            Includes: [ StationArchetype ]
+            Components: [ DiscontinuityStationComponent ]
+        - DiscretizationArchetype:
+            Doc: Discretization process and result for an alignment.
+            Includes: [ NamedArchetype ]
+            Components: [ DiscretizationComponent ]

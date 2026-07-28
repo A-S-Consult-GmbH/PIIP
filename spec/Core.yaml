@@ -1,0 +1,133 @@
+﻿- Ontology:
+    Name: Core
+    Doc: >-
+      Self-referential core ontology: base types, identity, versioning, lifecycle,
+      revision. No external ontology dependencies.
+      Core is explicitly linked by all other ontologies via LinkedOntologies,
+      but its types can be used without a prefix.
+    Meta:
+        Uri: https://w3id.org/piip/Core/1
+        Organization: A+S Consult GmbH FuE
+        OrganizationUri: https://apluss.de/a+s_consult
+        Version: 1.0.0
+        Creators: [ Jens Bartnitzek ]
+    BaseTypes:
+        - UUID:
+            Type: Core:UUID
+        - Entity:
+            Type: Core:UUID
+        - VersionId:
+            Type: xsd:string
+        - Uri:
+            Type: xsd:string
+        - String:
+            Type: xsd:string
+        - Real:
+            Type: xsd:double
+        - Integer:
+            Type: xsd:integer
+        - Index:
+            Type: xsd:integer
+        - Boolean:
+            Type: xsd:boolean
+        - Json:
+            Type: xsd:string
+        - Optional<>:
+        - Set<>:
+        - List<>:
+        - Link<>:
+            Doc: Typed domain reference (1 UUID). Stores the minimal version of the referenced Entity; the LifecycleAnchor is derivable via the version's LifecycleReferenceComponent. Generic type T must include LifecycleArchetype. Enables staleness detection without cascading versioning.
+        # --- measure types ---
+        - AngleValue:
+            Type: xsd:double
+            Unit: rad
+            Doc: Angle in radians.
+        - LengthValue:
+            Type: xsd:double
+            Unit: m
+            Doc: Length or distance in meters.
+        - CurvatureValue:
+            Type: xsd:double
+            Unit: 1/m
+            Doc: Curvature in inverse meters (reciprocal radius).
+        - SlopeValue:
+            Type: xsd:double
+            Unit: "1"
+            Doc: Slope as dimensionless ratio (rise/run).
+        - SpeedValue:
+            Type: xsd:double
+            Unit: km/h
+            Doc: Speed in kilometers per hour.
+    Components:
+        # --- identity ---
+        - NameComponent:
+            Doc: Human-readable name for identification and management. Separated from the Entity itself to allow unnamed technical entities.
+            Members:
+                - Member:
+                    Name: name
+                    Type: String
+                    Doc: Human-readable name of the entity.
+        # --- versioning ---
+        - VersionComponent:  # see: VD-01
+            Doc: Versioning information enabling reconstruction of version histories as a directed graph. Each new version is a new Entity referencing its predecessor.
+            Members:
+                - Member:
+                    Name: versionId
+                    Type: VersionId
+                    Doc: Human-readable identifier of this particular version. Typically sequential, timestamped, or descriptive.
+                - Member:
+                    Name: previousVersion
+                    Type: Optional<VersionedArchetype>
+                    Doc: Reference to the predecessor Entity in the version graph. Unchanged Components of the predecessor are referenced, not copied.
+        # --- lifecycle ---
+        - LifecycleAnchorComponent:
+            Doc: Marker component without data fields. Explicitly marks an Entity as a persistent lifecycle identity anchor. Required under OWA to distinguish anchors from arbitrary named entities.
+        - LifecycleReferenceComponent:
+            Doc: Links a versioned Entity to its persistent lifecycle identity anchor (LifecycleAnchorArchetype). The reference is optional to support purely technical or conceptual entities without physical counterpart.
+            Members:
+                - Member:
+                    Name: anchor
+                    Type: Optional<LifecycleAnchorArchetype>
+                    Doc: Reference to the persistent lifecycle anchor Entity. Optional for purely virtual or technical entities.
+        # --- revision ---
+        - RevisionMilestoneComponent:
+            Doc: Marker component identifying an Entity as a revision milestone. Carries no data.
+        - RevisionComponent:
+            Doc: Links an Entity to a specific Revision (planning milestone), indicating its status at a given planning phase and establishing contractual responsibility.
+            Members:
+                - Member:
+                    Name: revision
+                    Type: RevisionMilestoneArchetype
+                    Doc: Reference to the Revision Entity marking the planning milestone.
+                - Member:
+                    Name: relatedObject
+                    Type: Link<LifecycleArchetype>
+                    Doc: Domain reference to the Entity being associated with this revision.
+    Archetypes:
+        # --- identity ---
+        - NamedArchetype:
+            Doc: Any Entity with a human-readable name.
+            Components: [ NameComponent ]
+        # --- versioning ---
+        - VersionedArchetype:
+            Doc: Any Entity with versioning information, enabling historical reconstruction.
+            Includes: [ NamedArchetype ]
+            Components: [ VersionComponent ]
+        # --- lifecycle ---
+        - LifecycleAnchorArchetype:
+            Doc: Persistent identity anchor of a real-world object throughout its lifecycle, independent of structural or representational changes.
+            Includes: [ NamedArchetype ]
+            Components: [ LifecycleAnchorComponent ]
+        - LifecycleArchetype:
+            Doc: Versioned domain object with lifecycle reference. Combines versioning with a stable identity anchor.
+            Includes: [ VersionedArchetype ]
+            Components: [ LifecycleReferenceComponent ]
+        # --- revision ---
+        - RevisionMilestoneArchetype:
+            Doc: Defined planning milestone marking a transition from one phase to another (e.g. from Design to Execution Planning). Groups consistent versions of objects into a frozen reference state.
+            Includes: [ NamedArchetype ]
+            Components: [ RevisionMilestoneComponent ]
+        - RevisionArchetype:
+            Doc: Links an Entity to a specific Revision, ensuring each version is associated with a planning phase for contractual responsibility.
+            Includes: [ VersionedArchetype ]
+            Components: [ RevisionComponent ]

@@ -1,0 +1,68 @@
+﻿- Ontology:
+    Name: Topology
+    Doc: >-
+      Domain-agnostic topology ontology: directed graphs with nodes, edges,
+      and recursive macro-abstraction. No alignment or geometry dependencies.
+    Meta:
+        Uri: https://w3id.org/piip/Topology/1
+        Organization: A+S Consult GmbH FuE
+        OrganizationUri: https://apluss.de/a+s_consult
+        Version: 1.0.0
+        Creators: [ Jens Bartnitzek ]
+    LinkedOntologies:
+        - Core:
+            Uri: https://w3id.org/piip/Core/1
+    Enums:
+        - EdgeDirection:
+            Doc: Defines the direction of an edge.
+            Values: [
+                Forward,
+                Backward,
+                Both ]
+    Components:
+        - NodeComponent:
+            Doc: Marks an Entity as a topological node. Pure marker without data fields.
+        - EdgeComponent:
+            Doc: Topological edge connecting two nodes in a directed graph.
+            Members:
+                - Link<NodeArchetype> from
+                - Link<NodeArchetype> to
+        - TopologyComponent:
+            Doc: Aggregation of nodes and edges forming a topological network.
+            Members:
+                - Set<Link<NodeArchetype>> nodes
+                - Set<Link<EdgeArchetype>> edges
+        - MacroNodeComponent:
+            Doc: Aggregated node grouping inner and outer topological elements of a finer topology. Enables recursive abstraction across topological levels.
+            Members:
+                - Set<Link<NodeArchetype>> outerNodes
+                - Set<Link<EdgeArchetype>> outerEdges
+                - Set<Link<NodeArchetype>> innerNodes
+                - Set<Link<EdgeArchetype>> innerEdges
+        - MacroEdgeComponent:
+            Doc: Aggregated edge grouping inner topological elements of a finer topology.
+            Members:
+                - Set<Link<EdgeArchetype>> outerEdges
+                - Set<Link<EdgeArchetype>> innerEdges
+                - Set<Link<NodeArchetype>> innerNodes
+    Archetypes:
+        - NodeArchetype:
+            Doc: Topological node. Lifecycle-enabled for versioning and identity tracking.
+            Includes: [ LifecycleArchetype ]
+            Components: [ NodeComponent ]
+        - EdgeArchetype:
+            Doc: Topological edge connecting two nodes. Lifecycle-enabled.
+            Includes: [ LifecycleArchetype ]
+            Components: [ EdgeComponent ]
+        - TopologyArchetype:
+            Doc: Topological network of nodes and edges. Lifecycle-enabled.
+            Includes: [ LifecycleArchetype ]
+            Components: [ TopologyComponent ]
+        - MacroNodeArchetype:
+            Doc: Aggregated node grouping inner and outer elements from a finer topology.
+            Includes: [ NodeArchetype ]
+            Components: [ MacroNodeComponent ]
+        - MacroEdgeArchetype:
+            Doc: Aggregated edge grouping inner elements from a finer topology.
+            Includes: [ EdgeArchetype ]
+            Components: [ MacroEdgeComponent ]

@@ -1,0 +1,110 @@
+﻿- Ontology:
+    Name: Geometry
+    Doc: Geometric primitives, value types, base material and mesh geometry.
+    Meta:
+        Uri: https://w3id.org/piip/Geometry/1
+        Organization: A+S Consult GmbH FuE
+        OrganizationUri: https://apluss.de/a+s_consult
+        Version: 1.0.0
+        Creators: [ Jens Bartnitzek ]
+    LinkedOntologies:
+        - Core:
+            Uri: https://w3id.org/piip/Core/1
+    Enums:
+        - AffineTransformationOrder:
+            Values: [
+                ScaleRotateTranslate,
+                ScaleTranslateRotate,
+                RotateScaleTranslate,
+                RotateTranslateScale,
+                TranslateScaleRotate,
+                TranslateRotateScale
+            ]
+        - BoundingBoxState:
+            Values: [ Empty, Default, Infinit ]
+    ValueTypes:
+        # value types
+        - Point2D:
+            Members:
+                - Real x
+                - Real y
+        - Point3D:
+            Members:
+                - Real x
+                - Real y
+                - Real z
+        - Vector2D:
+            Members:
+                - Real x
+                - Real y
+        - Vector3D:
+            Members:
+                - Real x
+                - Real y
+                - Real z
+        - Color4:
+            Members:
+                - Real red
+                - Real green
+                - Real blue
+                - Real alpha
+        - AxisAlignedBoundingBox2D:
+            Members:
+                - Real xmin
+                - Real xmax
+                - Real ymin
+                - Real ymax
+                - BoundingBoxState state
+        - AffineTransformation3D:
+            Members:
+                - Member:
+                    Type: Optional<AffineTransformationOrder>
+                    Name: order
+                    Doc: default value is RotationScaleTranslate
+                - Optional<Real> translateX
+                - Optional<Real> translateY
+                - Optional<Real> translateZ
+                - Optional<Real> scaleX
+                - Optional<Real> scaleY
+                - Optional<Real> scaleZ
+                - Optional<Real> rotateX
+                - Optional<Real> rotateY
+                - Optional<Real> rotateZ
+    Components:
+        # 3d "drawing" material
+        - GeometryMaterialComponent:
+            Doc: Material definition for 3D geometry rendering. Versioned as a standalone Entity to enable reuse across meshes. More complex materials including textures should be added in a material ontology.
+            Members:
+                - Optional<Color4> diffuseColor
+        # 3d mesh geometry
+        - MeshSegmentComponent:
+            Doc: Segment within a mesh geometry, associating a part of the mesh with a material and triangle range.
+            Members:
+                - Optional<GeometryMaterialArchetype> geometryMaterial
+                - Integer numTriangles
+                - Optional<Index> startVertexIndex
+                - Optional<Index> startNormalIndex
+                - Optional<Index> startUVWIndex
+        - MeshGeometryComponent:
+            Doc: Full 3D mesh geometry with vertices, normals, UVs and indexed segments.
+            Members:
+                - List<Point3D> vertices
+                - List<Vector3D> normals
+                - List<Point3D> uvws
+                - List<Index> vertexIndices
+                - List<Index> normalIndices
+                - List<Index> uvwIndices
+                - Set<MeshGeometry3DSegmentArchetype> segments
+    Archetypes:
+        - GeometryMaterialArchetype:
+            Doc: Reusable material definition for 3D geometry.
+            Includes: [ VersionedArchetype ]
+            Components: [ GeometryMaterialComponent ]
+        - MeshGeometry3DSegmentArchetype:
+            Doc: Segment of a 3D mesh with associated material.
+            Includes: [ VersionedArchetype ]
+            Components: [ MeshSegmentComponent ]
+        - MeshGeometry3DArchetype:
+            Doc: Complete 3D mesh geometry with indexed vertex data.
+            Includes: [ VersionedArchetype ]
+            Components: [ MeshGeometryComponent ]

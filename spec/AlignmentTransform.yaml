@@ -1,0 +1,197 @@
+﻿- Ontology:
+    Name: AlignmentTransform
+    Doc: >-
+      System contract for transforming a georeferenced track alignment from a
+      source to a target coordinate context under a tolerance. Depends on
+      PointTransformSystem.TransformPoint without binding a concrete runtime.
+      The handle is injected at Start (constructor/factory binding) and held
+      for the lifetime of the instance of the AlignmentTransformSystem.
+      Pointwise adaptive densification and parametric element reconstruction
+      are admissible runtime variants of the same outer contract.
+      Slim provenance is a system-concern ValueType.
+      Data inputs use deep Link resolution; representation completeness is
+      declared in InformationNeed (Archetype → OneOf), not in the Domain model.
+    Meta:
+        Uri: https://w3id.org/piip/AlignmentTransform/1
+        Organization: A+S Consult GmbH FuE
+        OrganizationUri: https://apluss.de/a+s_consult
+        Version: 1.0.0
+        Creators: [ Jens Bartnitzek ]
+    LinkedOntologies:
+        - Core:
+            Uri: https://w3id.org/piip/Core/1
+        - Alignment:
+            Uri: https://w3id.org/piip/Alignment/1
+            Prefix: align
+        - Rail:
+            Uri: https://w3id.org/piip/Rail/1
+            Prefix: rail
+        - SpatialReference:
+            Uri: https://w3id.org/piip/SpatialReference/1
+            Prefix: sref
+        - PointTransform:
+            Uri: https://w3id.org/piip/PointTransform/1
+            Prefix: pt
+    InformationNeed:
+        align:HorizontalDesignStageArchetype:
+            Doc: >-
+              Evaluable horizontal geometry. Domain Archetype supplies marker
+              only; exactly one representation Component required (XOR).
+            OneOf:
+                - align:SegmentedHorizontalDesignStageComponent
+                - align:Nurb2DHorizontalDesignStageComponent
+        align:VerticalDesignStageArchetype:
+            Doc: >-
+              When TrackAlignmentComponent.vertical is present, the target
+              entity must carry evaluable vertical geometry.
+            OneOf:
+                - align:SegmentedVerticalDesignStageComponent
+        align:CantDesignStageArchetype:
+            Doc: >-
+              When TrackAlignmentComponent.cant is present, the target entity
+              must carry evaluable cant geometry.
+            OneOf:
+                - align:SegmentedCantDesignStageComponent
+    ValueTypes:
+        - AlignmentTransformSystemHandle:
+            Doc: >-
+              Typed handle of a started AlignmentTransformSystem runtime
+              instance. Part of the public AlignmentTransform contract. Field semantics match
+              pt:PointTransformSystemHandle; the ValueType is bound to this
+              system so callers cannot mix handles from different systems.
+            Members:
+                - Member:
+                    Type: Uri
+                    Name: endpoint
+                    Doc: >-
+                      Network or process endpoint of this runtime instance.
+                      Typed as Core Uri.
+                - Member:
+                    Type: UUID
+                    Name: systemId
+                    Doc: >-
+                      Stable identity of this started runtime instance (GUID).
+                - Member:
+                    Type: Uri
+                    Name: contractUri
+                    Doc: >-
+                      URI of the AlignmentTransform system ontology this
+                      instance fulfills (e.g. .../AlignmentTransform/1).
+                      Contract compatibility check, orthogonal to systemId.
+        - AlignmentTransformProvenance:
+            Doc: >-
+              Black-box-visible derivation metadata for an alignment produced
+              by TransformAlignment. Identity references use Link (GUID);
+              no full Data copies of geometries. No internal geodetic parameter sets.
+            Members:
+                - Member:
+                    Type: Optional<Link<rail:TrackAlignmentArchetype>>
+                    Name: sourceAlignment
+                    Doc: "Identity of the source alignment when retained."
+                - Member:
+                    Type: Optional<Link<sref:CoordinateContextArchetype>>
+                    Name: sourceContext
+                    Doc: "Identity of the source coordinate context when retained."
+                - Member:
+                    Type: Optional<Link<sref:CoordinateContextArchetype>>
+                    Name: targetContext
+                    Doc: "Identity of the target coordinate context when retained."
+                - Member:
+                    Type: String
+                    Name: methodId
+                    Doc: "Opaque procedure identifier of the S2 runtime (black-box visible)."
+                - Member:
+                    Type: Optional<UUID>
+                    Name: pointTransformSystemId
+                    Doc: "systemId from the S1 handle bound at Start, if recorded."
+                - Member:
+                    Type: Real
+                    Name: requestedTolerance
+                - Member:
+                    Type: Optional<Real>
+                    Name: achievedAccuracy
+                    Doc: "Achieved accuracy or residual estimate if reported by the runtime."
+        - AlignmentTransformResult:
+            Doc: >-
+              Result of TransformAlignment (PlacementResult pattern): on success
+              alignment Data and provenance are set; on failure errorMessage is
+              set and alignment is absent. No redundant success flag.
+            Members:
+                - Member:
+                    Type: Optional<Data<rail:TrackAlignmentArchetype>>
+                    Name: alignment
+                    Doc: >-
+                      Result alignment structure in the target context; typically
+                      also Georeferenced under OWA. By-value Data for the caller.
+                - Member:
+                    Type: Optional<AlignmentTransformProvenance>
+                    Name: provenance
+                    Doc: "Slim derivation metadata when alignment is present."
+                - Member:
+                    Type: Optional<String>
+                    Name: errorMessage
+                    Doc: "Failure reason when the operation did not produce an alignment."
+    Systems:
+        - AlignmentTransformSystem:
+            Doc: >-
+              Track alignment transformation under tolerance. Start binds a
+              live PointTransformSystemHandle (factory/constructor injection).
+              TransformAlignment uses that binding; it does not accept a new
+              handle per call. Own instance identity is
+              AlignmentTransformSystemHandle. Payload InformationNeed is ontology-level
+              (not per-operation paths).
+            Operations:
+                - Start:
+                    Doc: >-
+                      Start the AlignmentTransformSystem and bind the given PointTransformSystemHandle for the
+                      instance lifetime (constructor/factory pattern). Returns
+                      AlignmentTransformSystemHandle for subsequent operations.
+                      Dependency on the PointTransformSystem is expressed by the typed handle input and LinkedOntologies.
+                    Input:
+                        - Member:
+                            Type: pt:PointTransformSystemHandle
+                            Name: pointTransform
+                            Doc: "Started S1 instance used for all TransformPoint calls of this S2 instance."
+                    Output:
+                        - AlignmentTransformSystemHandle handle
+                - TransformAlignment:
+                    Doc: >-
+                      Transform a track alignment into the target coordinate
+                      context on the AlignmentTransformSystem instance identified by handle.
+                      Uses the PointTransformSystem bound at Start. Alignment and contexts
+                      are Data (by-value, deep Link resolve), not Link (GUID-only).
+                      Representation completeness: ontology InformationNeed on
+                      design-stage Archetypes encountered in the payload closure.
+                      Does not prescribe pointwise versus parametric strategy.
+                    Input:
+                        - Member:
+                            Type: AlignmentTransformSystemHandle
+                            Name: handle
+                            Doc: "Started AlignmentTransformSystem instance to invoke."
+                        - Member:
+                            Type: Data<rail:TrackAlignmentArchetype>
+                            Name: sourceAlignment
+                            Doc: >-
+                              By-value track alignment. Serialise Archetype
+                              Components; deep-resolve Link members. Nested
+                              design stages validated via InformationNeed.
+                        - Member:
+                            Type: Data<sref:CoordinateContextArchetype>
+                            Name: sourceContext
+                        - Member:
+                            Type: Data<sref:CoordinateContextArchetype>
+                            Name: targetContext
+                        - Member:
+                            Type: Real
+                            Name: tolerance
+                            Doc: "Maximum admissible linearisation / reconstruction error."
+                    Output:
+                        - AlignmentTransformResult result
+                - Shutdown:
+                    Doc: Stop the AlignmentTransformSystem instance identified by the handle. Releases the bound AlignmentTransformSystemHandle association.
+                    Input:
+                        - Member:
+                            Type: AlignmentTransformSystemHandle
+                            Name: handle
+                    Output:
+                        - Boolean success

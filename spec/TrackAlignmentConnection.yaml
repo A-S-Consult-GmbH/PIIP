@@ -1,0 +1,116 @@
+﻿- Ontology:
+    Name: TrackAlignmentConnection
+    Doc: >-
+      Geometric track connections: switches and crossings as alignment-section-based
+      line geometry (alignment layer). Defines connection patterns and geometric type parameters.
+      Physical properties (rail profile, frog movability) belong to the domain layer (Rail).
+      Links Core, Alignment (AlignmentSectionArchetype).
+    Meta:
+        Uri: https://w3id.org/piip/TrackAlignmentConnection/1
+        Organization: A+S Consult GmbH FuE
+        OrganizationUri: https://apluss.de/a+s_consult
+        Version: 1.0.0
+        Creators: [ Jens Bartnitzek ]
+    LinkedOntologies:
+        - Core:
+            Uri: https://w3id.org/piip/Core/1
+        - Alignment:
+            Uri: https://w3id.org/piip/Alignment/1
+            Prefix: align
+    Enums:
+        - SwitchType:
+            Doc: Type of switch - EW, IBW, ABW, EKW, DKW, etc.
+            Values: [
+                SimpleSwitch,        # EW – simple (straight) switch
+                OutsideCurvedSwitch, # ABW – outside curved switch
+                InsideCurvedSwitch,  # IBW – inside curved switch
+                SingleSlipSwitch,    # EKW – single slip switch
+                DoubleSlipSwitch,    # DKW – double slip switch
+                Other                # sonstige – other/unspecified
+            ]
+    Components:
+        - SwitchTypeSpecificationComponent:
+            Doc: Geometric type parameters of a railway switch. Describes the connection pattern (type, curvature, inclination) without physical properties (rail profile, frog movability). Physical properties belong to the domain layer.
+            Members:
+                - SwitchType switchType
+                - Member:
+                    Type: String
+                    Name: curvatureString
+                    Doc: human readable description of the diverging track geometry, e.g. "300", "10000/4000/inf", "ZB", or other curve descriptors
+                - Member:
+                    Type: String
+                    Name: inclinationString
+                    Doc: Inclination / divergence ratio, e.g. "1:9", "1:12"
+                - Member:
+                    Type: String
+                    Name: designationString
+                    Doc: derived designation string, e.g. "EW 500-1:12"
+        - CrossingTypeSpecificationComponent:
+            Doc: Geometric type parameters of a railway crossing (fixed frog). Describes crossing angle without physical properties.
+            Members:
+                - Member:
+                    Type: AngleValue
+                    Name: crossingAngle
+                    Doc: Crossing angle in radians.
+                - Member:
+                    Type: String
+                    Name: crossingType
+                    Doc: Human-readable designation of the crossing type (e.g., "K-1:9")
+        - TrackAlignmentConnectionComponent:
+            Doc: Marks an Entity as a geometric track alignment connection element (switch, crossing, etc.). Marker for alignment-layer connection geometry.
+        - GeometricSwitchComponent:
+            Doc: Geometric definition of a simple switch connecting a main track to a diverging track via alignment sections. alignment layer.
+            Members:
+                - Link<SwitchTypeSpecificationArchetype> typeSpecification
+                - Link<align:AlignmentSectionArchetype> mainTrack
+                - Link<align:AlignmentSectionArchetype> divergingTrack
+        - GeometricDoubleSwitchComponent:
+            Doc: Geometric definition of a double switch connecting a main track to two diverging tracks via alignment sections. alignment layer.
+            Members:
+                - Link<SwitchTypeSpecificationArchetype> typeSpecification
+                - Link<align:AlignmentSectionArchetype> mainTrack
+                - Link<align:AlignmentSectionArchetype> firstDivergingTrack
+                - Link<align:AlignmentSectionArchetype> secondDivergingTrack
+        - GeometricCrossingComponent:
+            Doc: Geometric definition of a railway crossing (fixed frog) connecting two tracks via alignment sections. alignment layer.
+            Members:
+                - Link<CrossingTypeSpecificationArchetype> typeSpecification
+                - Link<align:AlignmentSectionArchetype> firstTrack
+                - Link<align:AlignmentSectionArchetype> secondTrack
+        - GeometricDoubleSlipSwitchComponent:
+            Doc: Geometric definition of a double slip switch (DKW) with four alignment sections. Two direct tracks follow the existing rail alignments through the crossing; two diverging tracks define the switch connections as auxiliary alignments between the rails.
+            Members:
+                - Link<SwitchTypeSpecificationArchetype> typeSpecification
+                - Link<align:AlignmentSectionArchetype> firstDirectTrack
+                - Link<align:AlignmentSectionArchetype> secondDirectTrack
+                - Link<align:AlignmentSectionArchetype> firstDivergingTrack
+                - Link<align:AlignmentSectionArchetype> secondDivergingTrack
+    Archetypes:
+        - SwitchTypeSpecificationArchetype:
+            Doc: Technical specification of a railway switch type.
+            Includes: [ LifecycleArchetype ]
+            Components: [ SwitchTypeSpecificationComponent ]
+        - CrossingTypeSpecificationArchetype:
+            Doc: Technical specification of a railway crossing type.
+            Includes: [ LifecycleArchetype ]
+            Components: [ CrossingTypeSpecificationComponent ]
+        - TrackAlignmentConnectionArchetype:
+            Doc: Any geometric track alignment connection element (alignment layer). Marker for alignment-based connection geometry.
+            Includes: [ LifecycleArchetype ]
+            Components: [ TrackAlignmentConnectionComponent ]
+        - GeometricSwitchArchetype:
+            Doc: Geometric simple switch (alignment layer). Defines main and diverging track as alignment sections.
+            Includes: [ TrackAlignmentConnectionArchetype ]
+            Components: [ GeometricSwitchComponent ]
+        - GeometricDoubleSwitchArchetype:
+            Doc: Geometric double switch (alignment layer). Defines main track and two diverging tracks as alignment sections.
+            Includes: [ TrackAlignmentConnectionArchetype ]
+            Components: [ GeometricDoubleSwitchComponent ]
+        - GeometricCrossingArchetype:
+            Doc: Geometric railway crossing (alignment layer). Defines two crossing tracks as alignment sections.
+            Includes: [ TrackAlignmentConnectionArchetype ]
+            Components: [ GeometricCrossingComponent ]
+        - GeometricDoubleSlipSwitchArchetype:
+            Doc: Geometric double slip switch / DKW (alignment layer). Four alignment sections for two direct and two diverging tracks.
+            Includes: [ TrackAlignmentConnectionArchetype ]
+            Components: [ GeometricDoubleSlipSwitchComponent ]

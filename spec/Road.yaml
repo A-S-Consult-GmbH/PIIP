@@ -1,0 +1,64 @@
+﻿- Ontology:
+    Name: Road
+    Doc: >-
+      Road tracks, delineators, road alignment composition.
+      Links Core, Positioning (AlignmentConsumerArchetype, AlignmentProviderArchetype, PointProviderArchetype),
+      Alignment (AlignmentArchetype, HorizontalDesignStageArchetype,
+      VerticalDesignStageArchetype, CrossSlopeDesignStageArchetype),
+      SpotPlacement (SpotPlacementComponent), Reference (ReferenceArchetype).
+    Meta:
+        Uri: https://w3id.org/piip/Road/1
+        Organization: A+S Consult GmbH FuE
+        OrganizationUri: https://apluss.de/a+s_consult
+        Version: 1.0.0
+        Creators: [ Jens Bartnitzek ]
+    LinkedOntologies:
+        - Core:
+            Uri: https://w3id.org/piip/Core/1
+        - Positioning:
+            Uri: https://w3id.org/piip/Positioning/1
+            Prefix: pos
+        - Alignment:
+            Uri: https://w3id.org/piip/Alignment/1
+            Prefix: align
+        - SpotPlacement:
+            Uri: https://w3id.org/piip/SpotPlacement/1
+            Prefix: spot
+        - Reference:
+            Uri: https://w3id.org/piip/Reference/1
+            Prefix: ref
+    ValueTypes:
+        - CrossSectionContainer:
+            Doc: Container for cross section profiles along a road track.
+    Components:
+        - RoadAlignmentComponent:
+            Doc: Aggregates horizontal, vertical and cross slope design stages into a road alignment.
+            Members:
+                - Link<align:HorizontalDesignStageArchetype> horizontal
+                - Optional<Link<align:VerticalDesignStageArchetype>> vertical
+                - Optional<Link<align:CrossSlopeDesignStageArchetype>> leftSlope
+                - Optional<Link<align:CrossSlopeDesignStageArchetype>> rightSlope
+        - RoadTrackComponent:
+            Doc: Physical road track with alignment and cross sections.
+            Members:
+                - Link<RoadAlignmentArchetype> alignment
+                - CrossSectionContainer crossSections
+        - DelineatorComponent:
+            Doc: Road delineator referencing its parent road, placement and reference object.
+            Members:
+                - Link<RoadTrackArchetype> road
+                - Link<spot:SpotPlacedArchetype> placement
+                - Link<ref:ReferenceArchetype> component
+    Archetypes:
+        - RoadAlignmentArchetype:
+            Doc: Road alignment aggregating horizontal, vertical and cross slope stages.
+            Includes: [ align:AlignmentArchetype ]
+            Components: [ RoadAlignmentComponent ]
+        - RoadTrackArchetype:
+            Doc: Physical road track as a domain object with alignment and cross sections. Provides an alignment reference system for downstream objects (delineators, road furniture).
+            Includes: [ pos:AlignmentConsumerArchetype, pos:AlignmentProviderArchetype ]
+            Components: [ RoadTrackComponent ]
+        - DelineatorArchetype:
+            Doc: Road delineator as a positioned point object referencing a road.
+            Includes: [ pos:PointProviderArchetype ]
+            Components: [ DelineatorComponent ]
