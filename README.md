@@ -28,13 +28,13 @@ cd source
 python generate_docs.py
 ```
 
-Each YAML file is named after its ontology (`spec/Core.yaml`, …) and follows this structure:
+Each YAML file is named after its ontology and lives under `spec/` (optional subfolders). Structure:
 
 ```yaml
 - Ontology:
     Name: <Name>
     Meta:
-        Uri: https://w3id.org/piip/<Name>/1
+        Uri: https://w3id.org/piip/<Path>/1
         Organization: A+S Consult GmbH FuE
         OrganizationUri: https://apluss.de/a+s_consult
         Version: 1.0.0
@@ -48,6 +48,31 @@ Each YAML file is named after its ontology (`spec/Core.yaml`, …) and follows t
 ```
 
 See [doc/syntax.md](doc/syntax.md) for the full syntax reference.
+
+## Permanent identifiers (w3id)
+
+Stable ontology IRIs are published via [w3id.org/piip](https://w3id.org/piip) and redirect into this repository.
+
+| Permanent IRI | Redirect target |
+|---------------|-----------------|
+| `https://w3id.org/piip` | this repository |
+| `https://w3id.org/piip/{Path}/{Major}` | `spec/{Path}.yaml` on branch `main` |
+| `https://w3id.org/piip/{Path}/{X.Y.Z}` | `spec/{Path}.yaml` at git tag `v{X.Y.Z}` |
+
+`{Path}` is the path under `spec/` without the `.yaml` suffix. Subfolders are allowed and become IRI path segments.
+
+| File in repo | Ontology IRI (major) | Snapshot IRI (optional) |
+|--------------|----------------------|-------------------------|
+| `spec/Core.yaml` | `https://w3id.org/piip/Core/1` | `https://w3id.org/piip/Core/1.0.0` |
+| `spec/Rail/Signaling.yaml` | `https://w3id.org/piip/Rail/Signaling/1` | `https://w3id.org/piip/Rail/Signaling/1.0.0` |
+
+Rules:
+
+- **`Meta.Uri`** uses the **major** form only (`…/{Path}/1`). Keep this stable across minor/patch releases.
+- **`Meta.Version`** holds full SemVer (`1.0.0`).
+- **Snapshot** IRIs require a git tag named `vX.Y.Z` (GitHub UI: Releases → create tag `v1.0.0`, or `git tag -a v1.0.0 && git push origin v1.0.0`).
+- Breaking change → new major path (`.../2`); keep `.../1` pointing at the last compatible tag if needed.
+- New ontology: add `spec/{Path}.yaml` and set `Meta.Uri` to `https://w3id.org/piip/{Path}/1` — no w3id rule change.
 
 # License
 Copyright &copy; 2026 A+S Consult GmbH FuE
