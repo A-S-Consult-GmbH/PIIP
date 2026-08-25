@@ -7,6 +7,7 @@ from typing import Any
 from shared.piip_model import Ontology, OntologySet
 
 _CONTAINER_RE = re.compile(r"^(Optional|Set|List|Link|Data)<(.+)>$")
+_CARDINALITY_RE = re.compile(r"^(Optional|Set|List)<(.+)>$")
 _DATA_LINK_RE = re.compile(r"^(Data|Link)<(.+)>$")
 _PREFIX_RE = re.compile(r"^(\w+):(.+)$")
 
@@ -84,10 +85,18 @@ def _build_prefix_map(ont: Ontology, ont_set: OntologySet) -> dict[str, str]:
 
 
 def _strip_container(type_ref: str) -> str:
-    """Strip Optional/Set/List wrappers to get the bare type."""
+    """Strip Optional/Set/List/Link/Data wrappers to get the bare type."""
     cm = _CONTAINER_RE.match(type_ref)
     if cm:
         return _strip_container(cm.group(2))
+    return type_ref
+
+
+def _strip_cardinality(type_ref: str) -> str:
+    """Strip Optional/Set/List wrappers only; leave Link<> and Data<> intact."""
+    cm = _CARDINALITY_RE.match(type_ref)
+    if cm:
+        return _strip_cardinality(cm.group(2))
     return type_ref
 
 
@@ -139,6 +148,32 @@ def _check_prefix_usage(
     return None
 
 
+def _is_visible_archetype(
+    type_ref: str,
+    ont: Ontology,
+    ont_set: OntologySet,
+) -> bool:
+    """True if type_ref names an Archetype visible from ont (prefixed or bare)."""
+    pm = _PREFIX_RE.match(type_ref)
+    if pm:
+        prefix, bare = pm.group(1), pm.group(2)
+        if prefix == "xsd":
+            return False
+        if prefix == "Core":
+            core_ont = ont_set.by_name("Core")
+            if core_ont is None:
+                return False
+            return bare in {a.name for a in core_ont.archetypes}
+        for lo in ont.linked_ontologies:
+            if lo.prefix == prefix:
+                target = ont_set.by_name(lo.name)
+                if target is None:
+                    return False
+                return bare in {a.name for a in target.archetypes}
+        return False
+    return type_ref in _visible_archetypes(ont, ont_set)
+
+
 def _check_data_link_archetype(
     type_ref: str,
     ont: Ontology,
@@ -149,26 +184,50 @@ def _check_data_link_archetype(
     if not dm:
         return None
     wrapper, inner = dm.group(1), dm.group(2)
-    # Strip prefixed form
+    if _is_visible_archetype(inner, ont, ont_set):
+        return None
     pm = _PREFIX_RE.match(inner)
     if pm:
         prefix, bare = pm.group(1), pm.group(2)
-        if prefix in ("xsd", "Core"):
-            return None
+        if prefix == "xsd":
+            return f"{wrapper}<{inner}>: '{inner}' is not an Archetype"
+        if prefix == "Core":
+            return f"{wrapper}<{inner}>: '{bare}' is not an Archetype in 'Core'"
         for lo in ont.linked_ontologies:
             if lo.prefix == prefix:
                 target = ont_set.by_name(lo.name)
                 if target is None:
                     return None  # already reported elsewhere
-                arch_names = {a.name for a in target.archetypes}
-                if bare in arch_names:
-                    return None
                 return f"{wrapper}<{inner}>: '{bare}' is not an Archetype in '{lo.name}'"
         return None  # unknown prefix, already reported
-    # Unqualified — check visible archetypes
     vis = _visible_archetypes(ont, ont_set)
     if inner not in vis:
         return f"{wrapper}<{inner}>: '{inner}' is not an Archetype"
+    return None
+
+
+def _check_archetype_wrapping(
+    type_ref: str,
+    ont: Ontology,
+    ont_set: OntologySet,
+) -> str | None:
+    """Archetype member types must be wrapped in Link<> or Data<>.
+
+    Cardinality wrappers (Optional/Set/List) are stripped first. Bare Archetype,
+    Optional<Archetype>, Set<Archetype> are errors. Link<T> / Data<T> are checked
+    by _check_data_link_archetype.
+    """
+    core = _strip_cardinality(type_ref)
+    derr = _check_data_link_archetype(core, ont, ont_set)
+    if derr:
+        return derr
+    if _DATA_LINK_RE.match(core):
+        return None
+    if _is_visible_archetype(core, ont, ont_set):
+        return (
+            f"Archetype '{core}' must be wrapped in Link<> or Data<> "
+            f"(got '{type_ref}')"
+        )
     return None
 
 
@@ -340,7 +399,7 @@ def run_semantic_checks(ont_set: OntologySet) -> list[str]:
                 errors.append(
                     f"{tag}: {context}, Member '{member.name}': {perr}"
                 )
-            derr = _check_data_link_archetype(member.type_ref, ont, ont_set)
+            derr = _check_archetype_wrapping(member.type_ref, ont, ont_set)
             if derr:
                 errors.append(
                     f"{tag}: {context}, Member '{member.name}': {derr}"
@@ -356,7 +415,7 @@ def run_semantic_checks(ont_set: OntologySet) -> list[str]:
                         errors.append(
                             f"{tag}: System '{sys.name}' Operation '{op.name}' Input '{m.name}': type {err}"
                         )
-                    derr = _check_data_link_archetype(m.type_ref, ont, ont_set)
+                    derr = _check_archetype_wrapping(m.type_ref, ont, ont_set)
                     if derr:
                         errors.append(
                             f"{tag}: System '{sys.name}' Operation '{op.name}' Input '{m.name}': {derr}"
@@ -367,7 +426,7 @@ def run_semantic_checks(ont_set: OntologySet) -> list[str]:
                         errors.append(
                             f"{tag}: System '{sys.name}' Operation '{op.name}' Output '{m.name}': type {err}"
                         )
-                    derr = _check_data_link_archetype(m.type_ref, ont, ont_set)
+                    derr = _check_archetype_wrapping(m.type_ref, ont, ont_set)
                     if derr:
                         errors.append(
                             f"{tag}: System '{sys.name}' Operation '{op.name}' Output '{m.name}': {derr}"

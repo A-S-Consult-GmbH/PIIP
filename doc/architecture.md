@@ -70,7 +70,7 @@ Systems are algorithmically closed — a System does not know its consumers. Dec
             Operations:
                 - CalculatePlacement:
                     Input:
-                        - { Name: placedEntity, Type: PlacedArchetype }
+                        - { Name: placedEntity, Type: Link<PlacedArchetype> }
                     Output:
                         - { Name: result, Type: PlacementResult }
             Events:

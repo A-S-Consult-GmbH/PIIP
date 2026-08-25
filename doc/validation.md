@@ -64,8 +64,10 @@ Loads all ontologies into a shared runtime model and validates cross-file refere
 | Archetype `Includes` resolve to existing Archetypes | References | `Includes 'FooArchetype' which is not a known Archetype` |
 | Archetype `Components` resolve to existing Components | References | `Component 'FooComponent' which is not defined` |
 | ValueType `Extends` resolves to existing ValueType | References | `extends 'Foo' which is not a known ValueType` |
-| Member type refs resolve (incl. `Optional<>`, `Set<>`, `List<>`) | References | `type 'Foo' not found in any visible ontology` |
+| Member type refs resolve (incl. `Optional<>`, `Set<>`, `List<>`, `Link<>`, `Data<>`) | References | `type 'Foo' not found in any visible ontology` |
 | Prefixed type refs resolve in target ontology | References | `'Bar' not found in 'Geometry' (prefix 'geo')` |
+| `Data<T>` / `Link<T>` wrap an Archetype | References | `Link<Foo>: 'Foo' is not an Archetype` |
+| Archetype member types wrapped in `Link<>` or `Data<>` | References | `Archetype 'VersionedArchetype' must be wrapped in Link<> or Data<> (got 'Optional<VersionedArchetype>')` |
 
 **Implementation**: [`source/validator/l3_semantic.py`](../source/validator/l3_semantic.py)
 

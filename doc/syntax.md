@@ -79,13 +79,16 @@ BaseTypes:
     - Optional<>
     - Set<>
     - List<>
+    - Link<>
 ```
 
 | Container      | Semantics                                |
 |----------------|------------------------------------------|
-| `Optional<T>`  | Zero or one value of type `T`.           |
+| `Optional<T>`  | Slot cardinality: zero or one value of type `T`. |
 | `Set<T>`       | Unordered collection, no duplicates.     |
 | `List<T>`      | Ordered collection, allows duplicates.   |
+| `Link<T>`      | Typed domain reference (1 UUID) to an Entity expected to fulfill Archetype `T`. |
+| `Data<T>`      | By-value payload of Archetype `T` (system I/O). Not a Core BaseType; used in System ontologies. |
 
 ### Enums
 
@@ -149,7 +152,7 @@ Members define the properties of a Component or ValueType.
 
 ```yaml
 - String name
-- Optional<VersionedArchetype> previousVersion
+- Optional<Link<VersionedArchetype>> previousVersion
 - Set<ReferencePartItem> parts
 ```
 
@@ -158,11 +161,26 @@ Members define the properties of a Component or ValueType.
 ```yaml
 - Member:
     Name: anchor
-    Type: Optional<LifecycleAnchorArchetype>
+    Type: Optional<Link<LifecycleAnchorArchetype>>
     Doc: Reference to the persistent lifecycle anchor Entity.
 ```
 
-**Type** can be any of: `BaseType`, `Enum`, `ValueType`, or `Archetype`. An Archetype-typed member represents a **reference** to an Entity fulfilling that Archetype. Technically the reference is a `UUID`; the Archetype typing documents the expected contract.
+**Type** can be any of: `BaseType`, `Enum`, `ValueType`, or a wrapped Archetype (`Link<T>` or `Data<T>`). A bare Archetype as member type is invalid (L3).
+
+#### Link vs Optional
+
+`Link<T>` is a **reference kind**. `Optional<T>` is **slot cardinality**. The two concerns are independent.
+
+| Form | Authoring slot | At use |
+|------|----------------|--------|
+| `Link<T>` | UUID required | Resolve UUID; check target still fulfills `T` |
+| `Optional<Link<T>>` | UUID may be omitted | Same check if a UUID is present |
+| `Set<Link<T>>` / `List<Link<T>>` | Collection, possibly empty | Same check per stored UUID |
+| Bare `T` or `Optional<T>` where `T` is an Archetype | **Invalid** | Wrap in `Link<>` or `Data<>` |
+
+A stored `Link<T>` is not a live guarantee: the target may be gone, may no longer fulfill `T`, or may be stale. That runtime check applies to every stored UUID. It does not make the slot optional.
+
+Use `Optional<Link<T>>` when the author may omit the UUID (first version has no predecessor; 2D alignment has no vertical stage). Use `Link<T>` when the Component is incomplete without a UUID. Completeness beyond the type (which optional links a given use must fill) is an InformationNeed / LOIN concern, not a type-level `Optional`.
 
 ### Archetypes
 

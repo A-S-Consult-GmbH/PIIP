@@ -36,7 +36,10 @@
         - Set<>:
         - List<>:
         - Link<>:
-            Doc: Typed domain reference (1 UUID). Stores the minimal version of the referenced Entity; the LifecycleAnchor is derivable via the version's LifecycleReferenceComponent. Generic type T must include LifecycleArchetype. Enables staleness detection without cascading versioning.
+            Doc: >-
+              Typed domain reference (1 UUID) to an Entity expected to fulfill Archetype T. Stores the version against which the referencing Entity was computed.
+              Slot cardinality is independent of Link: use Optional<Link<T>> when the UUID may be omitted. Every stored UUID is resolved at use;
+              fulfillment of T is always checked (entity gone, no longer T, or stale). That check does not make the slot optional.
         # --- measure types ---
         - AngleValue:
             Type: xsd:double
@@ -77,8 +80,8 @@
                     Doc: Human-readable identifier of this particular version. Typically sequential, timestamped, or descriptive.
                 - Member:
                     Name: previousVersion
-                    Type: Optional<VersionedArchetype>
-                    Doc: Reference to the predecessor Entity in the version graph. Unchanged Components of the predecessor are referenced, not copied.
+                    Type: Optional<Link<VersionedArchetype>>
+                    Doc: Reference to the predecessor Entity in the version graph. Empty for the first version. Unchanged Components of the predecessor are referenced, not copied.
         # --- lifecycle ---
         - LifecycleAnchorComponent:
             Doc: Marker component without data fields. Explicitly marks an Entity as a persistent lifecycle identity anchor. Required under OWA to distinguish anchors from arbitrary named entities.
@@ -87,7 +90,7 @@
             Members:
                 - Member:
                     Name: anchor
-                    Type: Optional<LifecycleAnchorArchetype>
+                    Type: Optional<Link<LifecycleAnchorArchetype>>
                     Doc: Reference to the persistent lifecycle anchor Entity. Optional for purely virtual or technical entities.
         # --- revision ---
         - RevisionMilestoneComponent:
@@ -97,7 +100,7 @@
             Members:
                 - Member:
                     Name: revision
-                    Type: RevisionMilestoneArchetype
+                    Type: Link<RevisionMilestoneArchetype>
                     Doc: Reference to the Revision Entity marking the planning milestone.
                 - Member:
                     Name: relatedObject

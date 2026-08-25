@@ -80,7 +80,7 @@
         - MeshSegmentComponent:
             Doc: Segment within a mesh geometry, associating a part of the mesh with a material and triangle range.
             Members:
-                - Optional<GeometryMaterialArchetype> geometryMaterial
+                - Optional<Link<GeometryMaterialArchetype>> geometryMaterial
                 - Integer numTriangles
                 - Optional<Index> startVertexIndex
                 - Optional<Index> startNormalIndex
@@ -94,7 +94,7 @@
                 - List<Index> vertexIndices
                 - List<Index> normalIndices
                 - List<Index> uvwIndices
-                - Set<MeshGeometry3DSegmentArchetype> segments
+                - Set<Link<MeshGeometry3DSegmentArchetype>> segments
     Archetypes:
         - GeometryMaterialArchetype:
             Doc: Reusable material definition for 3D geometry.
