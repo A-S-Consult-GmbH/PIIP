@@ -80,6 +80,7 @@ BaseTypes:
     - Set<>
     - List<>
     - Link<>
+    - Data<>
 ```
 
 | Container      | Semantics                                |
