@@ -1,3 +1,7 @@
+<p align="center">
+  <img src="doc/img/Logo_PiiP.png" alt="PIIP" width="400">
+</p>
+
 # Process Information Infrastructure Protocol (PIIP)
 
 YAML-based information model specification following an **Entity-Component-System (ECS)** architecture for infrastructure.
