@@ -1,0 +1,20 @@
+name: ci
+on:
+  push:
+  pull_request:
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.10"
+      - name: Install piip
+        run: pip install git+https://github.com/A-S-Consult-GmbH/PIIP_tooling.git@v0.1.0
+      - name: Validate
+        run: piip validate --config piip_config.yaml
+      - name: Docs
+        run: piip docs --config piip_config.yaml
+      - name: Check generated documentation
+        run: git diff --ignore-cr-at-eol --exit-code -- doc

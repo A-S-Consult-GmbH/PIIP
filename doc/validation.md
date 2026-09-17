@@ -1,23 +1,28 @@
 # PIIP Validation Pipeline
 
-Three-level validation pipeline for piip ontology YAML files (`spec/**/*.yaml`).
+Three-level validation for ontology YAML files (`spec/**/*.yaml`). The implementation lives in [PIIP_tooling](https://github.com/A-S-Consult-GmbH/PIIP_tooling). Grammar details are in [syntax.md](syntax.md).
 
 ## Usage
 
 ```bash
-cd source
-python validate.py              # run all levels
-python validate.py --level 1    # only L1 (YAML syntax)
-python validate.py --level 2    # only L2 (JSON Schema)
-python validate.py --level 3    # only L3 (semantic checks)
-python validate.py path/to/file.yaml   # specific file(s)
+pip install git+https://github.com/A-S-Consult-GmbH/PIIP_tooling.git@v0.1.0
+piip validate --config piip_config.yaml
+piip docs --config piip_config.yaml
 ```
+
+```bash
+piip validate --config piip_config.yaml --level 1
+piip validate --config piip_config.yaml --level 2
+piip validate --config piip_config.yaml --level 3
+```
+
+This repository is a public spec root: `piip_config.yaml` sets `entry: spec/` and profile `public` follows from w3id URIs.
 
 ## Validation Levels
 
 ### L1 — YAML Syntax (yamllint)
 
-Catches malformed YAML before any structural or semantic analysis.
+Catches malformed YAML before structural or semantic analysis.
 
 | Check | Example Error |
 |-------|---------------|
@@ -25,16 +30,14 @@ Catches malformed YAML before any structural or semantic analysis.
 | Duplicate mapping keys | Two `Members:` keys in same block |
 | Line length | Lines exceeding 400 characters |
 
-**Config**: [`source/validator/.yamllint.yml`](../source/validator/.yamllint.yml)
-
 ### L2 — JSON Schema (structural grammar)
 
-Validates that the YAML structure matches the piip ontology grammar defined in [syntax.md](syntax.md).
+Validates that the YAML structure matches the ontology grammar. `Meta.Uri` is an http(s) URI. The w3id prefix is a **profile** check, not part of the grammar.
 
 | Check | Example Error |
 |-------|---------------|
-| `Ontology` has required keys: `Name`, `Meta`, `Components`, `Archetypes` | Missing `Archetypes` key |
-| `Meta` has `Uri` (w3id.org pattern), `Version` (semver) | `Version: "1.0"` (not semver) |
+| `Ontology` has required keys: `Name`, `Meta` | Missing `Meta` |
+| `Meta` has `Uri`, `Version` (semver) | `Version: "1.0"` (not semver) |
 | `LinkedOntologies` entries have `Uri`, optional `Prefix` | Missing `Uri` in linked ontology |
 | Components have only `Doc` and/or `Members` | Component with `Extends` key |
 | Components must **not** have `Extends` or `Includes` | `Extends: SomeComponent` in a Component |
@@ -44,18 +47,16 @@ Validates that the YAML structure matches the piip ontology grammar defined in [
 | Archetypes allow `Doc`, `Includes`, `Components` | Unknown key in Archetype |
 | No unknown keys anywhere (`additionalProperties: false`) | Typo like `Compoents:` |
 
-**Schema**: [`source/validator/piip_schema.json`](../source/validator/piip_schema.json)
-
 ### L3 — Semantic Checks (cross-file analysis)
 
-Loads all ontologies into a shared runtime model and validates cross-file references, naming conventions, and prefix consistency.
+Loads the transitive `LinkedOntologies` graph and checks references, naming, and prefixes.
 
 | Check | Category | Example Error |
 |-------|----------|---------------|
 | Components end in `*Component` | Naming | `EpsgCode` instead of `EpsgCodeComponent` |
 | Archetypes end in `*Archetype` | Naming | `Datum` instead of `DatumArchetype` |
-| No duplicate names across ontologies | Uniqueness | `AlignmentArchetype` in both `alignment.yaml` and `generic_objects.yaml` |
-| `LinkedOntologies` reference existing ontologies | References | `LinkedOntology 'Foo' not found` |
+| No duplicate names across ontologies | Uniqueness | `AlignmentArchetype` in two files |
+| `LinkedOntologies` resolve by URI | References | URI not in the loaded set |
 | `LinkedOntologies` URI matches actual ontology URI | Versioning | URI `…/Core/1` but actual is `…/Core/2` |
 | Non-Core linked ontologies must declare `Prefix` | Prefixes | `LinkedOntology 'Geometry' must declare a Prefix` |
 | Prefixes unique within each file | Prefixes | `Prefix 'geo' used by both 'Geometry' and 'Geodesy'` |
@@ -67,23 +68,6 @@ Loads all ontologies into a shared runtime model and validates cross-file refere
 | Member type refs resolve (incl. `Optional<>`, `Set<>`, `List<>`, `Link<>`, `Data<>`) | References | `type 'Foo' not found in any visible ontology` |
 | Prefixed type refs resolve in target ontology | References | `'Bar' not found in 'Geometry' (prefix 'geo')` |
 | `Data<T>` / `Link<T>` wrap an Archetype | References | `Link<Foo>: 'Foo' is not an Archetype` |
-| Archetype member types wrapped in `Link<>` or `Data<>` | References | `Archetype 'VersionedArchetype' must be wrapped in Link<> or Data<> (got 'Optional<VersionedArchetype>')` |
+| Archetype member types wrapped in `Link<>` or `Data<>` | References | `Archetype 'VersionedArchetype' must be wrapped in Link<> or Data<>` |
 
-**Implementation**: [`source/validator/l3_semantic.py`](../source/validator/l3_semantic.py)
-
-## Architecture
-
-```
-source/
-    validate.py                 # entry point
-    shared/
-        piip_model.py            # dataclass model: Ontology, Component, Archetype, ...
-    validator/
-        l1_yamllint.py          # L1 runner
-        l2_schema.py            # L2 in-process JSON Schema validation
-        l3_semantic.py          # L3 cross-file semantic checks
-        .yamllint.yml           # yamllint config
-        piip_schema.json         # JSON Schema for piip ontology grammar
-```
-
-All three levels share the same runtime model from `shared/piip_model.py`.
+Public ontologies use `https://w3id.org/piip/` URIs. Closed consumer ontologies use other http(s) URIs and must not use that prefix.

@@ -17,20 +17,21 @@ YAML-based information model specification following an **Entity-Component-Syste
 
 ## Quick Start
 
-Validate all ontology YAML files:
+Validate and generate documentation with the `piip` tools ([PIIP_tooling](https://github.com/A-S-Consult-GmbH/PIIP_tooling)):
 
 ```
-cd source
-pip install -r requirements.txt
-python validate.py
+pip install piip
+piip validate --config piip_config.yaml
+piip docs --config piip_config.yaml
 ```
 
-Generate Markdown documentation:
+Until PyPI:
 
 ```
-cd source
-python generate_docs.py
+pip install git+https://github.com/A-S-Consult-GmbH/PIIP_tooling.git@v0.1.0
 ```
+
+A forkable consumer (own YAML plus public URIs, no spec checkout) is [PIIP_example](https://github.com/A-S-Consult-GmbH/PIIP_example). Tools are Apache 2.0 in the tooling repository.
 
 Each YAML file is named after its ontology and lives under `spec/` (optional subfolders). Structure:
 
@@ -81,12 +82,7 @@ Rules:
 # License
 Copyright &copy; 2026 A+S Consult GmbH FuE
 
-This project uses two licenses:
-
-| Scope | License | File |
-|-------|---------|------|
-| Specification (`spec/`) | [CC BY-ND 4.0](https://creativecommons.org/licenses/by-nd/4.0/legalcode) | [LICENSE](LICENSE) |
-| Tooling (`source/`) | [Apache 2.0](https://www.apache.org/licenses/LICENSE-2.0) | [source/LICENSE](source/LICENSE) |
+This specification is licensed under [CC BY-ND 4.0](https://creativecommons.org/licenses/by-nd/4.0/legalcode). See [LICENSE](LICENSE). Validation and documentation tools are a separate Apache 2.0 package: [PIIP_tooling](https://github.com/A-S-Consult-GmbH/PIIP_tooling).
 
 The ECS architecture and ontology design are based on the doctoral thesis *"Ein komponentenbasiertes Rahmenwerk für Gleisnetze: Trassierung, Topologie und Fachobjekte in einer Entity-Component-System-Architektur"* by Jens Bartnitzek (BTU Cottbus–Senftenberg).
 
@@ -107,7 +103,3 @@ Under the following terms:
 - Attribution — You must give appropriate credit, provide a link to the license, and indicate if changes were made. You may do so in any reasonable manner, but not in any way that suggests the licensor endorses you or your use.
 - No derivatives — If you remix, transform, or build upon the material, you may not distribute (see note below) the modified material.
 - No additional restrictions — You may not apply legal terms or technological measures that legally restrict others from doing anything the license permits.
-
-## Tooling — Apache 2.0
-
-The Python source code (`source/`) for validation and documentation generation is licensed under the Apache License, Version 2.0. This provides an explicit patent grant, protecting users from patent claims by contributors. See [source/LICENSE](source/LICENSE) for details.

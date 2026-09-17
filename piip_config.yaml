@@ -1,0 +1,7 @@
+schema: piip-config/1
+entry:
+  - spec/
+outputs:
+  docs: doc
+requires:
+  piip: ">=0.1.0"
