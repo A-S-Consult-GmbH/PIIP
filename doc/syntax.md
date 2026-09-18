@@ -17,7 +17,7 @@ w3id pattern: `https://w3id.org/piip/{Name}/{Major}` → `spec/{Name}.yaml` (or 
 
 ## Top-Level Structure
 
-Every file contains exactly one YAML document starting with:
+Every ontology file contains exactly one YAML document starting with:
 
 ```yaml
 - Ontology:
@@ -103,7 +103,8 @@ is not repeated in an `InstanceSet`.
 
 ### LinkedOntologies
 
-Declares dependencies to other ontologies by name, versionised URI, and optional prefix.
+Declares dependencies to other ontologies by name, versionised URI, and a
+required prefix for non-Core ontologies.
 
 ```yaml
 LinkedOntologies:
@@ -111,10 +112,12 @@ LinkedOntologies:
         Uri: https://w3id.org/piip/Core/1
     - Geometry:
         Uri: https://w3id.org/piip/Geometry/1
-        Prefix: geo              # optional — required only on name collisions
+        Prefix: geo
 ```
 
-Types from linked ontologies can be used unqualified when names are unique; otherwise qualify with `<Prefix>:<TypeName>` (e.g. `geo:Point3D`).
+Non-Core linked ontologies declare a `Prefix`. Types from those ontologies
+must use `<Prefix>:<TypeName>` (e.g. `geo:Point3D`). Core types may be used
+without a prefix.
 
 ### BaseTypes (Core only)
 

@@ -4,4 +4,4 @@ entry:
 outputs:
   docs: doc
 requires:
-  piip: ">=0.1.0"
+  piip: ">=0.1.3"

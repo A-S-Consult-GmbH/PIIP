@@ -1,11 +1,11 @@
 # PIIP Validation Pipeline
 
-Three-level validation for ontology and `InstanceSet` YAML files. The implementation lives in [PIIP_tooling](https://github.com/A-S-Consult-GmbH/PIIP_tooling). Grammar details are in [syntax.md](syntax.md).
+Three-level validation for configured PIIP ontology and `InstanceSet` YAML files. The implementation lives in [PIIP_tooling](https://github.com/A-S-Consult-GmbH/PIIP_tooling). Grammar details are in [syntax.md](syntax.md).
 
 ## Usage
 
 ```bash
-pip install git+https://github.com/A-S-Consult-GmbH/PIIP_tooling.git@v0.1.0
+pip install git+https://github.com/A-S-Consult-GmbH/PIIP_tooling.git@v0.1.3
 piip validate --config piip_config.yaml
 piip docs --config piip_config.yaml
 ```

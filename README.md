@@ -28,7 +28,7 @@ piip docs --config piip_config.yaml
 Until PyPI:
 
 ```
-pip install git+https://github.com/A-S-Consult-GmbH/PIIP_tooling.git@v0.1.0
+pip install git+https://github.com/A-S-Consult-GmbH/PIIP_tooling.git@v0.1.3
 ```
 
 A forkable consumer (own YAML plus public URIs, no spec checkout) is [PIIP_example](https://github.com/A-S-Consult-GmbH/PIIP_example). Tools are Apache 2.0 in the tooling repository.
