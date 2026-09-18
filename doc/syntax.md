@@ -37,6 +37,59 @@ Every file contains exactly one YAML document starting with:
     Systems:             # optional (system ontologies)
 ```
 
+An instance document uses a separate top-level object:
+
+```yaml
+- InstanceSet:
+    Name: <InstanceSetName>
+    LinkedOntologies:       # ontologies defining the stored Components
+    Entities:               # UUID-identified Entity instances
+```
+
+An `InstanceSet` is data, not an ontology definition. It does not define new
+Components, Archetypes, or ValueTypes. Every Component and every member in an
+entity payload must be defined by one of the linked ontologies.
+
+### InstanceSet
+
+`InstanceSet` has exactly three required properties:
+
+| Key | Description |
+|-----|-------------|
+| `Name` | Local name of the instance set. |
+| `LinkedOntologies` | Ontologies that define the vocabulary used by the entity payloads. |
+| `Entities` | UUID-identified entity instances. |
+
+```yaml
+- InstanceSet:
+    Name: DemoInstanceSet
+    LinkedOntologies:
+        - Core:
+            Uri: https://w3id.org/piip/Core/1
+        - Demo:
+            Uri: https://example.org/piip-example/Demo/1
+            Prefix: demo
+    Entities:
+        - Id: 11111111-1111-1111-1111-111111111111
+          Components:
+            NameComponent:
+                name: "Demo entity"
+            demo:DemoMarkerComponent: {}
+```
+
+Each entity has exactly two properties:
+
+| Key | Description |
+|-----|-------------|
+| `Id` | Globally unique UUID of the Entity. |
+| `Components` | Mapping from Component name to its member values. |
+
+Component names and member names are case-sensitive. A marker Component uses an
+empty mapping (`{}`). Component payloads must use the member names and value
+types declared by the linked ontologies. Additional undeclared Components or
+members are invalid. Archetype membership is derived from the Components and
+is not repeated in an `InstanceSet`.
+
 ## Elements
 
 ### Meta

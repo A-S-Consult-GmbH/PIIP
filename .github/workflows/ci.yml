@@ -11,7 +11,7 @@ jobs:
         with:
           python-version: "3.10"
       - name: Install piip
-        run: pip install git+https://github.com/A-S-Consult-GmbH/PIIP_tooling.git@v0.1.1
+        run: pip install git+https://github.com/A-S-Consult-GmbH/PIIP_tooling.git@v0.1.2
       - name: Validate
         run: piip validate --config piip_config.yaml
       - name: Docs

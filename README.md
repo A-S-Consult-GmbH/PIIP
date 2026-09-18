@@ -33,7 +33,7 @@ pip install git+https://github.com/A-S-Consult-GmbH/PIIP_tooling.git@v0.1.0
 
 A forkable consumer (own YAML plus public URIs, no spec checkout) is [PIIP_example](https://github.com/A-S-Consult-GmbH/PIIP_example). Tools are Apache 2.0 in the tooling repository.
 
-Each YAML file is named after its ontology and lives under `spec/` (optional subfolders). Structure:
+Each ontology YAML file is named after its ontology and lives under `spec/` (optional subfolders). Structure:
 
 ```yaml
 - Ontology:
@@ -51,6 +51,30 @@ Each YAML file is named after its ontology and lives under `spec/` (optional sub
     Components:                 # atomic, disjoint data packets (*Component)
     Archetypes:                 # descriptive Component compositions (*Archetype)
 ```
+
+Entity data is represented by a separate `InstanceSet` document. An `InstanceSet`
+links the ontologies that define its Components and stores UUID-identified
+Entities:
+
+```yaml
+- InstanceSet:
+    Name: DemoInstanceSet
+    LinkedOntologies:
+        - Core:
+            Uri: https://w3id.org/piip/Core/1
+        - Demo:
+            Uri: https://example.org/piip-example/Demo/1
+            Prefix: demo
+    Entities:
+        - Id: 11111111-1111-1111-1111-111111111111
+          Components:
+            NameComponent:
+                name: "Demo entity"
+            demo:DemoMarkerComponent: {}
+```
+
+`InstanceSet` syntax is specified in [doc/syntax.md](doc/syntax.md), and the
+same validation pipeline checks both ontology and instance documents.
 
 See [doc/syntax.md](doc/syntax.md) for the full syntax reference.
 

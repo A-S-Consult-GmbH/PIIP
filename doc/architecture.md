@@ -40,6 +40,14 @@ Defines **what** exists: Entities, Components, Archetypes, ValueTypes, Enums, Ba
 
 This is the core of the YAML syntax described in [syntax.md](syntax.md) and realised in the ontology YAML files.
 
+### Instance Data
+
+An `InstanceSet` stores a population of Entity instances using the vocabulary
+defined by linked ontologies. It contains no type definitions. Each Entity is
+identified by a UUID and carries Component payloads. Component and Archetype
+definitions remain the Single Source of Truth in ontologies; Archetype
+membership is derived from the Components present on an Entity.
+
 ### System Concern
 
 Defines **how** data is processed. A System ontology links Domain ontologies and declares:

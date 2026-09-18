@@ -1,6 +1,6 @@
 # PIIP Validation Pipeline
 
-Three-level validation for ontology YAML files (`spec/**/*.yaml`). The implementation lives in [PIIP_tooling](https://github.com/A-S-Consult-GmbH/PIIP_tooling). Grammar details are in [syntax.md](syntax.md).
+Three-level validation for ontology and `InstanceSet` YAML files. The implementation lives in [PIIP_tooling](https://github.com/A-S-Consult-GmbH/PIIP_tooling). Grammar details are in [syntax.md](syntax.md).
 
 ## Usage
 
@@ -69,5 +69,21 @@ Loads the transitive `LinkedOntologies` graph and checks references, naming, and
 | Prefixed type refs resolve in target ontology | References | `'Bar' not found in 'Geometry' (prefix 'geo')` |
 | `Data<T>` / `Link<T>` wrap an Archetype | References | `Link<Foo>: 'Foo' is not an Archetype` |
 | Archetype member types wrapped in `Link<>` or `Data<>` | References | `Archetype 'VersionedArchetype' must be wrapped in Link<> or Data<>` |
+
+### InstanceSet checks
+
+`InstanceSet` documents use the same L1 and L2 checks as ontology documents,
+with an instance-specific grammar. L3 additionally checks:
+
+| Check | Category | Example Error |
+|-------|----------|---------------|
+| Entity IDs are UUIDs | Identity | malformed entity ID |
+| Entity IDs are unique within an InstanceSet | Identity | duplicate entity ID |
+| Component names resolve through `LinkedOntologies` | References | unknown Component |
+| Component members resolve in the declared Component | References | unknown member |
+| Required members are present | Completeness | missing member |
+| Values match declared BaseTypes, Enums, and ValueTypes | Types | invalid enum value |
+| `Set` and `List` values are collections | Types | scalar supplied for a list |
+| `Link<T>` values are UUIDs | References | invalid link value |
 
 Public ontologies use `https://w3id.org/piip/` URIs. Closed consumer ontologies use other http(s) URIs and must not use that prefix.
